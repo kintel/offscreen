@@ -22,7 +22,7 @@
 #include "FBO.h"
 
 
-void render() {
+void renderImmediate() {
   GL_CHECK(glClearColor(0.8, 0.8, 0.8, 1.0));
   GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
   glBegin(GL_TRIANGLES);
@@ -35,6 +35,106 @@ void render() {
   glEnd();
 }
 
+struct MyState {
+  GLuint shaderProgram;
+  GLuint vao;
+  GLuint ebo;
+};
+
+void setupModern(MyState &state) {
+  float vertices[] = {
+    -0.8f, -0.8f, 0.0f, 1, 0, 0,
+    0.8f, -0.8f, 0.0f,  0, 1, 0,
+    0.0f,  0.9f, 0.0f,  0, 0, 1,
+  };
+
+
+  GLuint vbo;
+  glGenBuffers(1, &vbo);
+
+  const char *vertexShaderSource = R"(#version 330 core
+    layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
+
+    out vec3 ourColor;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      ourColor = aColor;
+    }
+  )";
+  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+  glCompileShader(vertexShader);
+  int  success;
+  char infoLog[512];
+  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+    std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+  }
+
+  const char *fragmentShaderSource = R"(#version 330 core
+    out vec4 FragColor;
+    in vec3 ourColor;
+
+    void main() {
+      FragColor = vec4(ourColor, 1.0);
+    }
+  )";
+  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+  glCompileShader(fragmentShader);
+  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+    std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+  }
+
+  state.shaderProgram = glCreateProgram();
+  glAttachShader(state.shaderProgram, vertexShader);
+  glAttachShader(state.shaderProgram, fragmentShader);
+  glLinkProgram(state.shaderProgram);
+  glGetProgramiv(state.shaderProgram, GL_LINK_STATUS, &success);
+  if (!success) {
+    glGetProgramInfoLog(state.shaderProgram, 512, NULL, infoLog);
+    std::cerr << "ERROR::SHADER::PROGRAM::LINK_FAILED\n" << infoLog << std::endl;
+  }
+  glDeleteShader(vertexShader);
+  glDeleteShader(fragmentShader);
+
+  glUseProgram(state.shaderProgram);
+
+  glGenVertexArrays(1, &state.vao);
+  glBindVertexArray(state.vao);
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  unsigned int indices[] = {
+    0, 1, 2,
+  };
+  glGenBuffers(1, &state.ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+}
+
+void renderModern(const MyState& state) {
+  GL_CHECK(glClearColor(0.8, 0.6, 0.6, 1.0));
+  GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+  glUseProgram(state.shaderProgram);
+  //  glBindVertexArray(state.vao);
+  //  glDrawArrays(GL_TRIANGLES, 0, 3);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.ebo);
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
 int main(int argc, char *argv[])
 {
   uint32_t argWidth = 640;
@@ -42,6 +142,7 @@ int main(int argc, char *argv[])
   std::string argGLVersion = "2.1";
   std::string argContextProvider = "NSOpenGL";
   bool argInvisible = false;
+  std::string argRenderMode = "auto";
   bool argPrintHelp = false;
 
   // First configure all possible command line options.
@@ -51,6 +152,7 @@ int main(int argc, char *argv[])
   args.addArgument({"--opengl"}, &argGLVersion, "OpenGL version");
   args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
+  args.addArgument({"--mode"}, &argRenderMode, "Rendering mode [auto | immediate | modern]");
   args.addArgument({"-h", "--help"}, &argPrintHelp, "Print this help.");
 
   // Then do the actual parsing.
@@ -106,6 +208,20 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  if (argRenderMode == "auto") {
+    if (glMajor == 2) {
+      argRenderMode = "immediate";
+    }
+    else {
+      argRenderMode = "modern";
+    }
+  }
+  if (argRenderMode == "immediate" && glMajor > 2) {
+    // FIXME: ..unless a compatibility profile is used?
+    std::cerr << "OpenGL " << glVersion << " doesn't support immediate mode" << std::endl;
+    return 1;
+  }
+
   std::cout << "Got context and framebuffer:\n";
   std::cout << "  OpenGL: " << glVersion << " (" << glGetString(GL_VENDOR) << ")" << std::endl;
   std::cout << "  renderer: " << glGetString(GL_RENDERER) << std::endl;
@@ -129,6 +245,24 @@ int main(int argc, char *argv[])
 
   glViewport(0, 0, ctx->width(), ctx->height());
 
+
+  MyState state;
+
+  std::function<void()> setup;
+  std::function<void()> render;
+  if (argRenderMode == "immediate") {
+    setup = [](){};
+    render = renderImmediate;
+  } else {
+    setup = [&state]() {
+      setupModern(state);
+    };
+    render = [&state]() {
+      renderModern(state);
+    };
+  }
+
+  setup();
   if (const auto glfwContext = std::dynamic_pointer_cast<GLFWContext>(ctx)) {
     glfwContext->loop(render);
   }
