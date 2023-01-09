@@ -5,8 +5,11 @@
 #include "system-gl.h"
 
 #include "CommandLine.h"
+#ifdef __APPLE__
 #include "OffscreenContextNSOpenGL.h"
 #include "OffscreenContextCGL.h"
+#endif
+#include "OffscreenContextEGL.h"
 #include "GLFWContext.h"
 #include "FBO.h"
 
@@ -129,6 +132,7 @@ int main(int argc, char *argv[])
   uint32_t argHeight = 480;
   std::string argGLVersion = "2.1";
   std::string argContextProvider = "NSOpenGL";
+  std::string argProfile = "compatibility";
   bool argInvisible = false;
   std::string argRenderMode = "auto";
   bool argPrintHelp = false;
@@ -138,7 +142,9 @@ int main(int argc, char *argv[])
   args.addArgument({"--width"}, &argWidth, "Framebuffer width");
   args.addArgument({"--height"}, &argHeight, "Framebuffer height");
   args.addArgument({"--opengl"}, &argGLVersion, "OpenGL version");
+  // FIXME: Core vs. compatibility
   args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider");
+  args.addArgument({"--profile"}, &argProfile, "OpenGL profile [core | compatibility]");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
   args.addArgument({"--mode"}, &argRenderMode, "Rendering mode [auto | immediate | modern]");
   args.addArgument({"-h", "--help"}, &argPrintHelp, "Print this help.");
@@ -181,7 +187,10 @@ int main(int argc, char *argv[])
   }
   else
 #endif
-  if (argContextProvider == "glfw") {
+  if (argContextProvider == "egl") {
+    ctx = OffscreenContextEGL::create(argWidth, argHeight, major, minor, argProfile == "compatibility");
+  }
+  else if (argContextProvider == "glfw") {
     ctx = GLFWContext::create(argWidth, argHeight, major, minor, argInvisible);
   }
   else {
@@ -219,8 +228,7 @@ int main(int argc, char *argv[])
       argRenderMode = "modern";
     }
   }
-  if (argRenderMode == "immediate" && glMajor > 2) {
-    // FIXME: ..unless a compatibility profile is used?
+  if (argRenderMode == "immediate" && glMajor > 2 && argProfile != "compatibility") {
     std::cerr << "OpenGL " << glVersion << " doesn't support immediate mode" << std::endl;
     return 1;
   }
@@ -253,6 +261,7 @@ int main(int argc, char *argv[])
 
   std::function<void()> setup;
   std::function<void()> render;
+    std::cout << "AAA: " << argRenderMode << std::endl;
   if (argRenderMode == "immediate") {
     setup = [](){};
     render = renderImmediate;
