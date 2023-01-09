@@ -5,17 +5,27 @@ project(offscreen)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 
+add_executable(offscreen)
+
+if(APPLE)
+  find_library(COCOA Cocoa)
+  target_link_libraries(offscreen ${COCOA})
+  set(SRCS_APPLE
+      src/OffscreenContextNSOpenGL.mm
+      src/OffscreenContextCGL.cc
+      )
+endif(APPLE)
+
 set(SRCS
     src/main.cc
     src/CommandLine.cc
     src/OpenGLContext.cc
     src/OffscreenContext.cc
-    src/OffscreenContextNSOpenGL.mm
-    src/OffscreenContextCGL.cc
     src/GLFWContext.cc
     src/FBO.cc
+    ${SRCS_APPLE}
     )
 
-add_executable(offscreen ${SRCS})
-target_link_libraries(offscreen glfw OpenGL::GL "-framework Cocoa")
+target_sources(offscreen PRIVATE ${SRCS})
+target_link_libraries(offscreen glfw OpenGL::GL)
 set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
