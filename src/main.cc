@@ -172,17 +172,25 @@ int main(int argc, char *argv[])
 
   std::shared_ptr<OpenGLContext> ctx;
   std::transform(argContextProvider.begin(), argContextProvider.end(), argContextProvider.begin(), ::tolower);
+#ifdef __APPLE__
   if (argContextProvider == "nsopengl") {
     ctx = OffscreenContextNSOpenGL::create(argWidth, argHeight, major, minor);
   }
   else if (argContextProvider == "cgl") {
     ctx = OffscreenContextCGL::create(argWidth, argHeight, major, minor);
   }
-  else if (argContextProvider == "glfw") {
+  else
+#endif
+  if (argContextProvider == "glfw") {
     ctx = GLFWContext::create(argWidth, argHeight, major, minor, argInvisible);
   }
   else {
     std::cerr << "Unknown OpenGL context provider \"" << argContextProvider << "\"" << std::endl;
+    return 1;
+  }
+
+  if (!ctx) {
+    std::cerr << "Error: Unable to create GL context" << std::endl;
     return 1;
   }
 

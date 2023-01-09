@@ -27,5 +27,5 @@ set(SRCS
     )
 
 target_sources(offscreen PRIVATE ${SRCS})
-target_link_libraries(offscreen glfw OpenGL::GL)
+target_link_libraries(offscreen glfw OpenGL::GL OpenGL::GLU)
 set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
