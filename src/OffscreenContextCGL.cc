@@ -2,22 +2,9 @@
 
 #include <iostream>
 
+#include "system-gl.h"
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/OpenGL.h>
-#include <OpenGL/glu.h>
-
-// FIXME: Disable check in non-debug mode
-#define GL_CHECK(expr) \
-  expr;                \
-  { \
-    GLenum tGLErr = glGetError(); \
-    if (tGLErr != GL_NO_ERROR) { \
-      std::cout << "OpenGL error: " << gluErrorString(tGLErr) << " (" << tGLErr << ") in " \
-		<< __FILE__ << ":" << __LINE__ << "\n"			\
-		<< "              " << #expr << "\n";			\
-    } \
-  }
-
 
 class OffscreenContextCGLImpl : public OffscreenContextCGL {
 

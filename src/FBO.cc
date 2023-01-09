@@ -2,21 +2,7 @@
 
 #include <iostream>
 
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-
-// FIXME: Disable check in non-debug mode
-#define GL_CHECK(expr) \
-  expr;                \
-  { \
-    GLenum tGLErr = glGetError(); \
-    if (tGLErr != GL_NO_ERROR) { \
-      std::cout << "OpenGL error: " << gluErrorString(tGLErr) << " (" << tGLErr << ") in " \
-		<< __FILE__ << ":" << __LINE__ << "\n"			\
-		<< "              " << #expr << "\n";			\
-    } \
-  }
+#include "system-gl.h"
 
 bool check_fbo_status()
 {
@@ -35,18 +21,18 @@ bool check_fbo_status()
     std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT\n";
   } else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
     std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT\n";
-  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT) {
-    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT\n";
-  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT) {
-    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT\n";
-  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT) {
-    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT\n";
-  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT) {
-    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT\n";
-  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT) {
-    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT\n";
+    //  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS) {
+    //    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS\n";
+    //  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_FORMATS) {
+    //    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_FORMATS\n";
+  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER) {
+    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER\n";
+  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER) {
+    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER\n";
+  } else if (status == GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) {
+    std::cerr << "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE\n";
   } else {
-    std::cerr << "Unknown Code: glCheckFramebufferStatusEXT returned:" << status << "\n";
+    std::cerr << "Unknown Code: glCheckFramebufferStatus() returned:" << status << "\n";
   }
   return result;
 }

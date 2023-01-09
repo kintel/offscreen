@@ -2,21 +2,7 @@
 
 #include <iostream>
 
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-
-// FIXME: Disable check in non-debug mode
-#define GL_CHECK(expr) \
-  expr;                \
-  { \
-    GLenum tGLErr = glGetError(); \
-    if (tGLErr != GL_NO_ERROR) { \
-      std::cout << "OpenGL error: " << gluErrorString(tGLErr) << " (" << tGLErr << ") in " \
-		<< __FILE__ << ":" << __LINE__ << "\n"			\
-		<< "              " << #expr << "\n";			\
-    } \
-  }
+#include <OpenGL/OpenGL.h>
 
 #import <AppKit/AppKit.h>
 
@@ -28,10 +14,11 @@ public:
   NSAutoreleasePool *pool;
 
   bool makeCurrent() override {
-    GL_CHECK([this->openGLContext makeCurrentContext]);
+    [this->openGLContext makeCurrentContext];
     return true;
   }
   bool destroy() override {
+    [this->pool release];
     return true;
   }
 };
@@ -67,7 +54,7 @@ std::shared_ptr<OffscreenContextNSOpenGL> OffscreenContextNSOpenGL::create(size_
   // Create and make current the OpenGL context to render with (with color and depth buffers)
   ctx->openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixFormat shareContext:nil];
   if (!ctx->openGLContext) {
-    std::cerr << "Unable to create NSOpenGLContext\n";
+    std::cerr << "Unable to create NSOpenGLContext" << std::endl;
     [ctx->pool release];
     return nullptr;
   }

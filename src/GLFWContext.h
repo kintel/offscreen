@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <functional>
+#include "system-gl.h"
 #include <GLFW/glfw3.h>
 
 #include "OpenGLContext.h"

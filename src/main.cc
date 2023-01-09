@@ -1,26 +1,14 @@
 #include <iostream>
 #include <locale>
 
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl3.h>
-#include <OpenGL/glu.h>
-
-// FIXME: Disable check in non-debug mode
-#define GL_CHECK(expr)						\
-  expr;								\
-  if (const auto err = glGetError(); err != GL_NO_ERROR) {	\
-    std::cout << "OpenGL error: " << gluErrorString(err)	\
-	      << " (" << err << ") in "				\
-	      << __FILE__ << ":" << __LINE__ << "\n"		\
-	      << "              " << #expr << "\n";		\
-  }
+#define GLAD_GL_IMPLEMENTATION
+#include "system-gl.h"
 
 #include "CommandLine.h"
 #include "OffscreenContextNSOpenGL.h"
 #include "OffscreenContextCGL.h"
 #include "GLFWContext.h"
 #include "FBO.h"
-
 
 void renderImmediate() {
   GL_CHECK(glClearColor(0.8, 0.8, 0.8, 1.0));
@@ -200,6 +188,13 @@ int main(int argc, char *argv[])
 
   ctx->makeCurrent();
 
+  int version = gladLoaderLoadGL();
+  if (version == 0) {
+    std::cout << "GLAD: Failed to initialize OpenGL context" << std::endl;
+    return 1;
+  }
+  printf("GLAD: Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+
   const char *glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
   int glMajor, glMinor;
   int numGlVersionElements = sscanf(glVersion, "%d.%d", &glMajor, &glMinor);
@@ -283,8 +278,6 @@ int main(int argc, char *argv[])
 
   // FIXME: Resize buffer
   //glfwGetFramebufferSize(window, &width, &height);
-
-
 
   return 0;
 }

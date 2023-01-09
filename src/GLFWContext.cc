@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "system-gl.h"
 #include <GLFW/glfw3.h>
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -39,7 +40,9 @@ std::shared_ptr<GLFWContext> GLFWContext::create(size_t width, size_t height,
 
   int fbWidth, fbHeight;
   glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-  return std::make_shared<GLFWContext>(window, fbWidth, fbHeight);
+  auto context = std::make_shared<GLFWContext>(window, fbWidth, fbHeight);
+
+  return context;
 }
 
 GLFWContext::GLFWContext(GLFWwindow* window, int width, int height) : OpenGLContext(width, height), window(window) {

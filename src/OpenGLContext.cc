@@ -2,21 +2,7 @@
 
 #include <iostream>
 
-#define GL_SILENCE_DEPRECATION
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-
-// FIXME: Disable check in non-debug mode
-#define GL_CHECK(expr) \
-  expr;                \
-  { \
-    GLenum tGLErr = glGetError(); \
-    if (tGLErr != GL_NO_ERROR) { \
-      std::cout << "OpenGL error: " << gluErrorString(tGLErr) << " (" << tGLErr << ") in " \
-		<< __FILE__ << ":" << __LINE__ << "\n"			\
-		<< "              " << #expr << "\n";			\
-    } \
-  }
+#include "system-gl.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "ext/stb/stb_image_write.h"
