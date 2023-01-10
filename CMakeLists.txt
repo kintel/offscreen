@@ -29,7 +29,7 @@ if(HAS_EGL)
   set(SRCS_EGL
       src/OffscreenContextEGL.cc
       )
-  add_compile_definitions(-DHAS_EGL)
+  add_compile_definitions(HAS_EGL)
 endif()
 
 set(SRCS
