@@ -2,11 +2,19 @@ cmake_minimum_required(VERSION 3.20)
 
 project(offscreen)
 
-find_package(OpenGL REQUIRED COMPONENTS OpenGL EGL)
-message(STATUS "OPENGL_LIBRARIES: ${OPENGL_egl_LIBRARY}")
-find_package(glfw3 REQUIRED)
-
 add_executable(offscreen)
+
+find_package(OpenGL REQUIRED)
+if (OpenGL_EGL_FOUND)
+  target_link_libraries(offscreen OpenGL::OpenGL OpenGL::EGL)
+  set(HAS_EGL TRUE)
+else()
+  target_link_libraries(offscreen OpenGL::GL)
+endif()
+target_link_libraries(offscreen OpenGL::GLU)
+
+find_package(glfw3 REQUIRED)
+target_link_libraries(offscreen glfw)
 
 if(APPLE)
   find_library(COCOA Cocoa)
@@ -17,9 +25,13 @@ if(APPLE)
       )
 endif(APPLE)
 
-set(SRCS_EGL
-    src/OffscreenContextEGL.cc
-)
+if(HAS_EGL)
+  set(SRCS_EGL
+      src/OffscreenContextEGL.cc
+      )
+  add_compile_definitions(-DHAS_EGL)
+endif()
+
 set(SRCS
     src/main.cc
     src/CommandLine.cc
@@ -32,5 +44,4 @@ set(SRCS
     )
 
 target_sources(offscreen PRIVATE ${SRCS})
-target_link_libraries(offscreen glfw OpenGL::OpenGL OpenGL::EGL OpenGL::GLU)
 set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)

@@ -9,7 +9,9 @@
 #include "OffscreenContextNSOpenGL.h"
 #include "OffscreenContextCGL.h"
 #endif
+#ifdef HAS_EGL
 #include "OffscreenContextEGL.h"
+#endif
 #include "GLFWContext.h"
 #include "FBO.h"
 
@@ -187,10 +189,13 @@ int main(int argc, char *argv[])
   }
   else
 #endif
+#if HAS_EGL
   if (argContextProvider == "egl") {
     ctx = OffscreenContextEGL::create(argWidth, argHeight, major, minor, argProfile == "compatibility");
   }
-  else if (argContextProvider == "glfw") {
+  else
+#endif
+  if (argContextProvider == "glfw") {
     ctx = GLFWContext::create(argWidth, argHeight, major, minor, argInvisible);
   }
   else {
@@ -261,7 +266,6 @@ int main(int argc, char *argv[])
 
   std::function<void()> setup;
   std::function<void()> render;
-    std::cout << "AAA: " << argRenderMode << std::endl;
   if (argRenderMode == "immediate") {
     setup = [](){};
     render = renderImmediate;
