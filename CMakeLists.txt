@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 
 project(offscreen)
 
@@ -6,7 +6,12 @@ add_executable(offscreen)
 
 find_package(OpenGL REQUIRED)
 if (OpenGL_EGL_FOUND)
-  target_link_libraries(offscreen OpenGL::OpenGL OpenGL::EGL)
+  if (TARGET OpenGL::EGL)
+    target_link_libraries(offscreen OpenGL::OpenGL OpenGL::EGL)
+  else()
+    # Some systems (e.g. Raspberry Pi) seem to not produce the OpenGL::* targets
+    target_link_libraries(offscreen ${OPENGL_LIBRARIES} ${OPENGL_egl_LIBRARY})
+  endif()
   set(HAS_EGL TRUE)
 else()
   target_link_libraries(offscreen OpenGL::GL)
@@ -15,6 +20,9 @@ target_link_libraries(offscreen OpenGL::GLU)
 
 find_package(glfw3 REQUIRED)
 target_link_libraries(offscreen glfw)
+
+# Needed for Raspberry pi:
+target_link_libraries(offscreen dl)
 
 if(APPLE)
   find_library(COCOA Cocoa)
