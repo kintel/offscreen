@@ -59,10 +59,10 @@ void setupModern(MyState &state) {
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
   glCompileShader(vertexShader);
-  int  success;
+  GLint success;
   char infoLog[512];
   glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-  if (!success) {
+  if (success != GL_TRUE) {
     glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
     std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
   }
@@ -79,7 +79,7 @@ void setupModern(MyState &state) {
   glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
   glCompileShader(fragmentShader);
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-  if (!success) {
+  if (success != GL_TRUE) {
     glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
     std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
   }
@@ -89,7 +89,7 @@ void setupModern(MyState &state) {
   glAttachShader(state.shaderProgram, fragmentShader);
   glLinkProgram(state.shaderProgram);
   glGetProgramiv(state.shaderProgram, GL_LINK_STATUS, &success);
-  if (!success) {
+  if (success != GL_TRUE) {
     glGetProgramInfoLog(state.shaderProgram, 512, NULL, infoLog);
     std::cerr << "ERROR::SHADER::PROGRAM::LINK_FAILED\n" << infoLog << std::endl;
   }
