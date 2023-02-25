@@ -4,6 +4,11 @@ project(offscreen)
 
 add_executable(offscreen)
 
+option(USE_GLAD "Use GLAD for OpenGL function wrangling")
+if(USE_GLAD)
+  target_compile_definitions(offscreen PRIVATE USE_GLAD)
+endif()
+
 find_package(OpenGL REQUIRED)
 if (OpenGL_EGL_FOUND)
   if (TARGET OpenGL::EGL)
@@ -53,3 +58,10 @@ set(SRCS
 
 target_sources(offscreen PRIVATE ${SRCS})
 set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
+
+message(STATUS " ")
+message(STATUS "====================================")
+message(STATUS "Build Configuration Summary")
+message(STATUS "====================================")
+message(STATUS " ")
+message(STATUS "Using GLAD:          ${USE_GLAD}")

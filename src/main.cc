@@ -1,7 +1,9 @@
 #include <iostream>
 #include <locale>
 
+#ifdef USE_GLAD
 #define GLAD_GL_IMPLEMENTATION
+#endif
 #include "system-gl.h"
 
 #include "CommandLine.h"
@@ -272,12 +274,22 @@ int main(int argc, char *argv[])
 
   ctx->makeCurrent();
 
-  int version = gladLoaderLoadGL();
+#ifdef USE_GLAD
+  int version;
+  if (argContextProvider == "glfw") {
+    version = gladLoadGL(glfwGetProcAddress);
+  }
+  else {
+    version = gladLoaderLoadGL();
+  }
   if (version == 0) {
     std::cout << "GLAD: Failed to initialize OpenGL context" << std::endl;
     return 1;
   }
   printf("GLAD: Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+   printf("GLAD glFramebufferTexture: %p\n", glFramebufferTexture);
+#endif
+
   printf("NSLookupAndBindSymbol glFramebufferTexture: %p\n", MyNSGLGetProcAddress("glFramebufferTexture"));
   printf("OpenGL glFramebufferTexture: %p\n", glFramebufferTexture);
 

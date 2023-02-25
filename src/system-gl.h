@@ -1,10 +1,13 @@
 #pragma once
 
+#ifdef USE_GLAD
 #include "glad/gl.h"
+#endif
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/glu.h>
+#include <OpenGL/gl3.h>
 #else
 #include <GL/glu.h>
 #endif
