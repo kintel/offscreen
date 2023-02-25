@@ -208,7 +208,6 @@ int main(int argc, char *argv[])
   args.addArgument({"--width"}, &argWidth, "Framebuffer width");
   args.addArgument({"--height"}, &argHeight, "Framebuffer height");
   args.addArgument({"--opengl"}, &argGLVersion, "OpenGL version");
-  // FIXME: Core vs. compatibility
   args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider");
   args.addArgument({"--profile"}, &argProfile, "OpenGL profile [core | compatibility]");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
