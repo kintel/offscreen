@@ -16,7 +16,7 @@
 #include "FBO.h"
 
 void renderImmediate() {
-  GL_CHECK(glClearColor(0.8, 0.8, 0.8, 1.0));
+  GL_CHECK(glClearColor(0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 1.0));
   GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
   glBegin(GL_TRIANGLES);
   glColor3f(1, 0, 0);
@@ -160,7 +160,7 @@ void setupModern(MyState &state, const std::string &glslVersion) {
 }
 
 void renderModern(const MyState& state) {
-  GL_CHECK(glClearColor(0.8, 0.6, 0.6, 1.0));
+  GL_CHECK(glClearColor(0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 1.0));
   GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
   glUseProgram(state.shaderProgram);
   //  glBindVertexArray(state.vao);
@@ -171,6 +171,8 @@ void renderModern(const MyState& state) {
 
 int main(int argc, char *argv[])
 {
+  std::srand(std::time(nullptr));
+
   uint32_t argWidth = 640;
   uint32_t argHeight = 480;
   std::string argGLVersion = "2.1";
