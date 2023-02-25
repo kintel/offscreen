@@ -169,6 +169,25 @@ void renderModern(const MyState& state) {
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#include <stdlib.h>
+#include <string.h>
+void * MyNSGLGetProcAddress(const char *name)
+{
+    NSSymbol symbol;
+    char *symbolName = static_cast<char*>(malloc(strlen (name) + 2));
+    strcpy(symbolName + 1, name);
+    symbolName[0] = '_';
+    symbol = NULL;
+    if (NSIsSymbolNameDefined(symbolName)) {
+      symbol = NSLookupAndBindSymbol(symbolName);
+    }
+    free(symbolName);
+    return symbol ? NSAddressOfSymbol (symbol) : NULL;
+}
+#endif // __APPLE__
+
 int main(int argc, char *argv[])
 {
   std::srand(std::time(nullptr));
@@ -259,6 +278,8 @@ int main(int argc, char *argv[])
     return 1;
   }
   printf("GLAD: Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+  printf("NSLookupAndBindSymbol glFramebufferTexture: %p\n", MyNSGLGetProcAddress("glFramebufferTexture"));
+  printf("OpenGL glFramebufferTexture: %p\n", glFramebufferTexture);
 
   const char *glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
   int glMajor, glMinor;
