@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #ifdef USE_GLAD
 #include "glad/gl.h"
 #endif

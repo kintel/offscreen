@@ -3,6 +3,7 @@
 o Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
 o Qt-backed GL context
 o Pure GLES mode?
+o Look into "warning gl.h and gl3.h are both included"
 
 
 ## Prerequisites

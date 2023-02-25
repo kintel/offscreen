@@ -16,160 +16,10 @@
 #endif
 #include "GLFWContext.h"
 #include "FBO.h"
-
-void renderImmediate() {
-  GL_CHECK(glClearColor(0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 1.0));
-  GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-  glBegin(GL_TRIANGLES);
-  glColor3f(1, 0, 0);
-  glVertex2f(-0.8, -0.8);
-  glColor3f(0, 1, 0);
-  glVertex2f(0.8, -0.8);
-  glColor3f(0, 0, 1);
-  glVertex2f(0, 0.9);
-  glEnd();
-}
-
-struct MyState {
-  GLuint shaderProgram;
-  GLuint vao;
-  GLuint ebo;
-};
-
-
-const char *vertexShaderSource_330 = R"(#version 330 core
-    layout (location = 0) in vec3 aPos;
-    layout (location = 1) in vec3 aColor;
-
-    out vec3 ourColor;
-
-    void main() {
-      gl_Position = vec4(aPos, 1.0);
-      ourColor = aColor;
-    }
-  )";
-
-const char *fragmentShaderSource_330 = R"(#version 330 core
-    out vec4 FragColor;
-    in vec3 ourColor;
-
-    void main() {
-      FragColor = vec4(ourColor, 1.0);
-    }
-  )";
-   
-  const char *vertexShaderSource_140 = R"(#version 140
-    in vec3 aPos;
-    in vec3 aColor;
-
-    out vec3 ourColor;
-
-    void main() {
-      gl_Position = vec4(aPos, 1.0);
-      ourColor = aColor;
-    }
-  )";
-
-const char *fragmentShaderSource_140 = R"(#version 140
-    out vec4 FragColor;
-    in vec3 ourColor;
-
-    void main() {
-      FragColor = vec4(ourColor, 1.0);
-    }
-  )";
-
-void setupModern(MyState &state, const std::string &glslVersion) {
-  float vertices[] = {
-    -0.8f, -0.8f, 0.0f, 1, 0, 0,
-    0.8f, -0.8f, 0.0f,  0, 1, 0,
-    0.0f,  0.9f, 0.0f,  0, 0, 1,
-  };
-
-  GLuint vbo;
-  glGenBuffers(1, &vbo);
-
-  const char *vertexShaderSource;
-  if (glslVersion == "330") {
-    vertexShaderSource = vertexShaderSource_330;
-  }
-  else {
-    vertexShaderSource = vertexShaderSource_140; 
-  }
-  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-  glCompileShader(vertexShader);
-  GLint success;
-  char infoLog[512];
-  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-  if (success != GL_TRUE) {
-    glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-    std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-  }
-
-  const char *fragmentShaderSource;
-  if (glslVersion == "330") {
-    fragmentShaderSource = fragmentShaderSource_330;
-  }
-  else {
-    fragmentShaderSource = fragmentShaderSource_140;
-  }
-  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-  glCompileShader(fragmentShader);
-  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-  if (success != GL_TRUE) {
-    glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-    std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-  }
-
-  state.shaderProgram = glCreateProgram();
-  glAttachShader(state.shaderProgram, vertexShader);
-  glAttachShader(state.shaderProgram, fragmentShader);
-  if (glslVersion != "330") {
-    glBindAttribLocation(state.shaderProgram, 0, "aPos");
-    glBindAttribLocation(state.shaderProgram, 1, "aColor");
-  }
-  glLinkProgram(state.shaderProgram);
-  glGetProgramiv(state.shaderProgram, GL_LINK_STATUS, &success);
-  if (success != GL_TRUE) {
-    glGetProgramInfoLog(state.shaderProgram, 512, NULL, infoLog);
-    std::cerr << "ERROR::SHADER::PROGRAM::LINK_FAILED\n" << infoLog << std::endl;
-  }
-  glDeleteShader(vertexShader);
-  glDeleteShader(fragmentShader);
-
-  glUseProgram(state.shaderProgram);
-
-  glGenVertexArrays(1, &state.vao);
-  glBindVertexArray(state.vao);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  unsigned int indices[] = {
-    0, 1, 2,
-  };
-  glGenBuffers(1, &state.ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-
-}
-
-void renderModern(const MyState& state) {
-  GL_CHECK(glClearColor(0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 0.4 + 0.6*std::rand()/RAND_MAX, 1.0));
-  GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-  glUseProgram(state.shaderProgram);
-  //  glBindVertexArray(state.vao);
-  //  glDrawArrays(GL_TRIANGLES, 0, 3);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, state.ebo);
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-}
+#include "state.h"
+#include "render_immediate.h"
+#include "render_modern_ogl2.h"
+#include "render_modern_ogl3.h"
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
@@ -273,6 +123,9 @@ int main(int argc, char *argv[])
 
   ctx->makeCurrent();
 
+
+  std::cout << glGetString(GL_EXTENSIONS) << std::endl;
+
 #ifdef USE_GLAD
   int version;
   if (argContextProvider == "glfw") {
@@ -309,7 +162,7 @@ int main(int argc, char *argv[])
     }
   }
   if (argRenderMode == "immediate" && glMajor > 2 && argProfile != "compatibility") {
-    std::cerr << "OpenGL " << glVersion << " doesn't support immediate mode" << std::endl;
+    std::cerr << "Error: OpenGL " << glVersion << " doesn't support immediate mode" << std::endl;
     return 1;
   }
 
@@ -351,16 +204,27 @@ int main(int argc, char *argv[])
     setup = [](){};
     render = renderImmediate;
   } else {
-    std::string glslVersion = "140";
+    std::string glslVersion = "120";
     if (glMajor >= 4 || glMajor == 3 && glMinor >= 3) {
       glslVersion = "330";
+    } else if (glMajor == 3) {
+      glslVersion = "140";
     }
-    setup = [&state, &glslVersion]() {
-      setupModern(state, glslVersion);
-    };
+    if (glMajor >= 3) {
+      setup = [&state, &glslVersion]() {
+	setupModernOGL3(state, glslVersion);
+      };
     render = [&state]() {
-      renderModern(state);
+      renderModernOGL3(state);
     };
+    } else {
+      setup = [&state, &glslVersion]() {
+	setupModernOGL2(state, glslVersion);
+      };
+      render = [&state]() {
+	renderModernOGL2(state);
+      };
+    }
   }
 
   setup();
@@ -368,6 +232,7 @@ int main(int argc, char *argv[])
     glfwContext->loop(render);
   }
   else {
+    GL_CHECK();
     render();
   }
 

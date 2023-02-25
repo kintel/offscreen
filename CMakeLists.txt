@@ -52,6 +52,9 @@ set(SRCS
     src/OffscreenContext.cc
     src/GLFWContext.cc
     src/FBO.cc
+    src/render_immediate.cc
+    src/render_modern_ogl2.cc
+    src/render_modern_ogl3.cc
     ${SRCS_EGL}
     ${SRCS_APPLE}
     )
