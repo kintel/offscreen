@@ -311,6 +311,12 @@ int main(int argc, char *argv[])
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
     GLint flags = 0;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+    if (argProfile == "compatibility" && !(profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)) {
+      std::cerr << "Error: Requested compatibility profile, got context without compatibility profile" << std::endl;
+      return 1;
+    }
+
     std::string profileStr = (profile & GL_CONTEXT_CORE_PROFILE_BIT) ? "Core" : (profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) ? "Compatibility" : "No";
     std::cout << "  profile: " << profileStr << " profile" << std::endl;
     std::cout << "  flags: ";
