@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
 {
   std::srand(std::time(nullptr));
 
-  uint32_t argWidth = 640;
-  uint32_t argHeight = 480;
+  uint32_t argWidth = 512;
+  uint32_t argHeight = 512;
   std::string argGLVersion = "2.1";
   std::string argContextProvider = "NSOpenGL";
   std::string argProfile = "compatibility";
@@ -123,8 +123,18 @@ int main(int argc, char *argv[])
 
   ctx->makeCurrent();
 
-
-  std::cout << glGetString(GL_EXTENSIONS) << std::endl;
+  if (major == 2) {
+    const auto *extensions = glGetString(GL_EXTENSIONS);
+    std::cout << extensions << std::endl;
+  }
+  else {
+    GLint numExtensions;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+    for(auto i = 0; i < numExtensions; ++i) {
+      std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
+    }
+    std::cout << std::endl;
+  }
 
 #ifdef USE_GLAD
   int version;
@@ -142,8 +152,10 @@ int main(int argc, char *argv[])
    printf("GLAD glFramebufferTexture: %p\n", glFramebufferTexture);
 #endif
 
+  GL_CHECK();
   printf("NSLookupAndBindSymbol glFramebufferTexture: %p\n", MyNSGLGetProcAddress("glFramebufferTexture"));
   printf("OpenGL glFramebufferTexture: %p\n", glFramebufferTexture);
+  GL_CHECK();
 
   const char *glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
   int glMajor, glMinor;
@@ -196,7 +208,7 @@ int main(int argc, char *argv[])
   glViewport(0, 0, ctx->width(), ctx->height());
 
 
-  MyState state;
+  std::vector<MyState> states;
 
   std::function<void()> setup;
   std::function<void()> render;
@@ -211,29 +223,28 @@ int main(int argc, char *argv[])
       glslVersion = "140";
     }
     if (glMajor >= 3) {
-      setup = [&state, &glslVersion]() {
-	setupModernOGL3(state, glslVersion);
+      setup = [&states, &glslVersion]() {
+	setupModernOGL3(states, glslVersion);
       };
-    render = [&state]() {
-      renderModernOGL3(state);
+    render = [&states]() {
+      renderModernOGL3(states);
     };
     } else {
-      setup = [&state, &glslVersion]() {
-	setupModernOGL2(state, glslVersion);
+      setup = [&states, &glslVersion]() {
+	setupModernOGL2(states, glslVersion);
       };
-      render = [&state]() {
-	renderModernOGL2(state);
+      render = [&states]() {
+	renderModernOGL2(states);
       };
     }
   }
 
-  setup();
+  GL_CHECK(setup());
   if (const auto glfwContext = std::dynamic_pointer_cast<GLFWContext>(ctx)) {
     glfwContext->loop(render);
   }
   else {
-    GL_CHECK();
-    render();
+    GL_CHECK(render());
   }
 
   glFinish();
