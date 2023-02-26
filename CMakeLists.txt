@@ -60,7 +60,7 @@ set(SRCS
     )
 
 target_sources(offscreen PRIVATE ${SRCS})
-set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
+set_property(TARGET offscreen PROPERTY CXX_STANDARD 20)
 
 message(STATUS " ")
 message(STATUS "====================================")
