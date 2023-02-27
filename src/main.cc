@@ -123,19 +123,6 @@ int main(int argc, char *argv[])
 
   ctx->makeCurrent();
 
-  if (major == 2) {
-    const auto *extensions = glGetString(GL_EXTENSIONS);
-    std::cout << extensions << std::endl;
-  }
-  else {
-    GLint numExtensions;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-    for(auto i = 0; i < numExtensions; ++i) {
-      std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
-    }
-    std::cout << std::endl;
-  }
-
 #ifdef USE_GLAD
   int version;
   if (argContextProvider == "glfw") {
@@ -152,10 +139,25 @@ int main(int argc, char *argv[])
    printf("GLAD glFramebufferTexture: %p\n", glFramebufferTexture);
 #endif
 
+  if (major == 2) {
+    const auto *extensions = glGetString(GL_EXTENSIONS);
+    std::cout << extensions << std::endl;
+  }
+  else {
+    GLint numExtensions;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+    for(auto i = 0; i < numExtensions; ++i) {
+      std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
+    }
+    std::cout << std::endl;
+  }
+
+#ifdef __APPLE__
   GL_CHECK();
   printf("NSLookupAndBindSymbol glFramebufferTexture: %p\n", MyNSGLGetProcAddress("glFramebufferTexture"));
   printf("OpenGL glFramebufferTexture: %p\n", glFramebufferTexture);
   GL_CHECK();
+#endif
 
   const char *glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
   int glMajor, glMinor;
