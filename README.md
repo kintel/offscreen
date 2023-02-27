@@ -1,9 +1,14 @@
+# offscreen
+
+Multi-platform OpenGL offscreen tester.
+
 ## TODO
 
-o Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
-o Qt-backed GL context
-o Pure GLES mode?
-o Look into "warning gl.h and gl3.h are both included"
+* Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
+* Qt-backed GL context
+* Pure GLES mode?
+* Look into "warning gl.h and gl3.h are both included"
+* Windows support
 
 
 ## Prerequisites
