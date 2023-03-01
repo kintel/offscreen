@@ -6,7 +6,14 @@
 #define EGL_EGLEXT_PROTOTYPES
 #include <EGL/eglext.h>
 
-#include "system-gl.h"
+#include "GL/gl.h"
+
+namespace {
+
+
+
+
+} // namespace
 
 class OffscreenContextEGLImpl : public OffscreenContextEGL {
 public:
@@ -37,7 +44,11 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     EGL_RED_SIZE, 8,
     EGL_ALPHA_SIZE, 8,
     EGL_DEPTH_SIZE, 24,
+    EGL_STENCIL_SIZE, 8,
     EGL_CONFORMANT, EGL_OPENGL_BIT,
+    EGL_CONFIG_CAVEAT, EGL_NONE,
+    // EGL_SAMPLE_BUFFERS, 1,
+    // EGL_SAMPLES, 4,
     EGL_NONE
   };
 
@@ -50,6 +61,8 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
   ctx->eglDisplay = EGL_NO_DISPLAY;
   auto eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) eglGetProcAddress("eglQueryDevicesEXT");
   auto eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress("eglGetPlatformDisplayEXT");
+  auto eglGetDisplayDriverName = (PFNEGLGETDISPLAYDRIVERNAMEPROC) eglGetProcAddress("eglGetDisplayDriverName");
+
   if (eglQueryDevicesEXT && eglGetPlatformDisplayEXT) {
     const int MAX_DEVICES = 10;
     EGLDeviceEXT eglDevs[MAX_DEVICES];
@@ -57,6 +70,84 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
 
     eglQueryDevicesEXT(MAX_DEVICES, eglDevs, &numDevices);
     std::cout << "Found " << numDevices << " EGL devices" << std::endl;
+    for (int idx = 0; idx < numDevices; idx++) {
+      EGLDisplay disp = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[idx], 0);
+      if (disp != EGL_NO_DISPLAY) {
+        std::cout << "  Display #" << idx << " OK" << std::endl;
+        EGLint major, minor;
+        if (!eglInitialize(disp, &major, &minor)) {
+          std::cerr << "    Unable to initialize EGL" << std::endl;
+        }
+        else {
+          std::cout << "    Initialized EGL for display: " << major << "." << minor << " (" << eglQueryString(disp, EGL_VENDOR) << ")" << std::endl;
+          if (eglGetDisplayDriverName) {
+            const char *name = eglGetDisplayDriverName(ctx->eglDisplay);
+            if (name) {
+              std::cout << "    Display driver name " << name << std::endl;
+            }
+          }
+          std::cout << "    Extensions: " << eglQueryString(disp, EGL_EXTENSIONS) << std::endl;
+
+          EGLint numConfigs;
+          if (!eglChooseConfig(disp, configAttribs, nullptr, 0, &numConfigs)) {
+            std::cerr << "    Failed to choose number of configs. eglError: " << std::hex << eglGetError() << ")" << std::endl;
+          }
+          else {
+            std::cout << "    " << numConfigs << " configs available from eglChooseConfig()" << std::endl;
+          }
+
+          // if (!eglGetConfigs(disp, nullptr, 0, &numConfigs)) {
+          //   std::cerr << "    Failed to get number of configs. eglError: " << std::hex << eglGetError() << ")" << std::endl;
+          // }
+          // else {
+          //   std::cout << "    Got " << numConfigs << " configs from eglGetConfigs()" << std::endl;
+          // }
+
+          auto configs = new EGLConfig[numConfigs];
+          if (!eglChooseConfig(disp, configAttribs, configs, numConfigs, &numConfigs)) {
+            std::cerr << "    Failed to choose configs. eglError: " << std::hex << eglGetError() << ")" << std::endl;
+          }
+          else {
+            std::cout << "    Got " << numConfigs << " configs from eglChooseConfig()" << std::endl;
+          }
+
+          for (int i=0;i<numConfigs;++i) {
+            std::cout << "    Config #" << i << ":" << std::endl;
+            EGLint val;
+            eglGetConfigAttrib(disp, configs[i], EGL_CONFIG_ID, &val);
+            std::cout << "      EGL_CONFIG_ID: " << val << std::endl;
+          }
+
+          if (!eglBindAPI(EGL_OPENGL_API)) {
+            std::cerr << "Bind EGL_OPENGL_API failed!" << std::endl;
+          }
+          const auto& config = configs[0];
+          const auto eglSurface = eglCreatePbufferSurface(disp, config, pbufferAttribs);
+          if (eglSurface == EGL_NO_SURFACE) {
+            std::cerr << "Unable to create EGL surface (eglError: " << eglGetError() << ")" << std::endl;
+          }
+          EGLint ctxattr[] = {
+            EGL_CONTEXT_MAJOR_VERSION, majorGLVersion,
+            EGL_CONTEXT_MINOR_VERSION, minorGLVersion,
+            EGL_CONTEXT_OPENGL_PROFILE_MASK, compatibilityProfile ? EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT : EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+            EGL_NONE
+          };
+          const auto eglContext = eglCreateContext(disp, config, EGL_NO_CONTEXT, ctxattr);
+          if (eglContext == EGL_NO_CONTEXT) {
+            std::cerr << "Unable to create EGL context (eglError: " << eglGetError() << ")" << std::endl;
+          }
+          eglMakeCurrent(disp, eglSurface, eglSurface, eglContext);
+          std::cout << "    OpenGL version: " << reinterpret_cast<const char *>(glGetString(GL_VERSION)) << std::endl;
+          std::cout << "    renderer: " << glGetString(GL_RENDERER) << std::endl;
+          eglDestroyContext(disp, eglContext);
+          eglDestroySurface(disp, eglSurface);
+          eglTerminate(disp);
+        }
+      }
+      else {
+        std::cout << "  Display #" << idx << " Invalid" << std::endl;
+      }
+    }
     for (int idx = 0; idx < numDevices; idx++) {
       EGLDisplay disp = eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevs[idx], 0);
       if (disp != EGL_NO_DISPLAY) {
@@ -83,7 +174,6 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
 
   std::cout << "EGL Version: " << major << "." << minor << " (" << eglQueryString(ctx->eglDisplay, EGL_VENDOR) << ")" << std::endl;
 
-  auto eglGetDisplayDriverName = (PFNEGLGETDISPLAYDRIVERNAMEPROC) eglGetProcAddress("eglGetDisplayDriverName");
   if (eglGetDisplayDriverName) {
     const char *name = eglGetDisplayDriverName(ctx->eglDisplay);
     if (name) {
@@ -91,9 +181,7 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     }
   }
 
-
-
- EGLint numConfigs;
+  EGLint numConfigs;
   EGLConfig config;
   if (!eglChooseConfig(ctx->eglDisplay, configAttribs, &config, 1, &numConfigs)) {
     std::cerr << "Failed to choose config (eglError: " << std::hex << eglGetError() << ")" << std::endl;
