@@ -136,9 +136,10 @@ int main(int argc, char *argv[])
     return 1;
   }
   printf("GLAD: Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
-   printf("GLAD glFramebufferTexture: %p\n", glFramebufferTexture);
+  printf("GLAD glFramebufferTexture: %p\n", glFramebufferTexture);
 #endif
 
+  // FIXME: Add flag to control verbosity or extension output
   if (major == 2) {
     const auto *extensions = glGetString(GL_EXTENSIONS);
     std::cout << extensions << std::endl;
@@ -153,6 +154,7 @@ int main(int argc, char *argv[])
   }
 
 #ifdef __APPLE__
+// FIXME: This can probably be removed: It was just some code to prove that MyNSGLGetProcAddress() returned the same function pointer as the OpenGL library itself provides.
   GL_CHECK();
   printf("NSLookupAndBindSymbol glFramebufferTexture: %p\n", MyNSGLGetProcAddress("glFramebufferTexture"));
   printf("OpenGL glFramebufferTexture: %p\n", glFramebufferTexture);
