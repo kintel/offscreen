@@ -86,6 +86,12 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+#if HAS_EGL
+  if (argContextProvider == "egl") {
+    OffscreenContextEGL::dumpEGLInfo();
+  }
+#endif
+
   std::cout << "Requesting context and framebuffer:\n";
   std::cout << "  Context provider: " << argContextProvider << "\n";
   std::cout << "  OpenGL: " << major << "." << minor << "\n";
@@ -140,18 +146,18 @@ int main(int argc, char *argv[])
 #endif
 
   // FIXME: Add flag to control verbosity or extension output
-  if (major == 2) {
-    const auto *extensions = glGetString(GL_EXTENSIONS);
-    std::cout << extensions << std::endl;
-  }
-  else {
-    GLint numExtensions;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-    for(auto i = 0; i < numExtensions; ++i) {
-      std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
-    }
-    std::cout << std::endl;
-  }
+  // if (major == 2) {
+  //   const auto *extensions = glGetString(GL_EXTENSIONS);
+  //   std::cout << extensions << std::endl;
+  // }
+  // else {
+  //   GLint numExtensions;
+  //   glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+  //   for(auto i = 0; i < numExtensions; ++i) {
+  //     std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
+  //   }
+  //   std::cout << std::endl;
+  // }
 
 #ifdef __APPLE__
 // FIXME: This can probably be removed: It was just some code to prove that MyNSGLGetProcAddress() returned the same function pointer as the OpenGL library itself provides.

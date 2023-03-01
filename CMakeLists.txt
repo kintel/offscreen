@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
 project(offscreen)
 
 add_executable(offscreen)
@@ -18,6 +20,9 @@ if (OpenGL_EGL_FOUND)
     target_link_libraries(offscreen ${OPENGL_LIBRARIES} ${OPENGL_egl_LIBRARY})
   endif()
   set(HAS_EGL TRUE)
+
+  find_package(GBM REQUIRED)
+  target_link_libraries(offscreen GBM::GBM)
 else()
   target_link_libraries(offscreen OpenGL::GL)
 endif()

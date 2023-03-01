@@ -7,6 +7,10 @@
 class OffscreenContextEGL : public OffscreenContext {
 public:
   OffscreenContextEGL(int width, int height) : OffscreenContext(width, height) {}
-  static std::shared_ptr<OffscreenContextEGL> create(size_t width, size_t height,
-						     size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile);
+  // FIXME: Query/enumerate GPUSs/devices?
+  static void dumpEGLInfo();
+  // FIXME: Specify GPU?
+  static std::shared_ptr<OffscreenContextEGL> create(
+    size_t width, size_t height, size_t majorGLVersion, 
+    size_t minorGLVersion, bool compatibilityProfile);
 };
