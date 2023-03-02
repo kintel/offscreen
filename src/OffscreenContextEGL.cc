@@ -12,6 +12,7 @@
 
 namespace {
 
+ void dumpEGLDisplay(EGLDisplay eglDisplay) {
    const EGLint configAttribs[] = {
     EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
     EGL_BLUE_SIZE, 8,
@@ -25,7 +26,6 @@ namespace {
     EGL_NONE
   };
 
-void dumpEGLDisplay(EGLDisplay eglDisplay) {
   const EGLint pbufferAttribs[] = {
     EGL_WIDTH, 640,
     EGL_HEIGHT, 480,
@@ -141,12 +141,12 @@ void dumpEGLDevicePlatform() {
   }
 }
 
-void dumpEGLGBMPlatform() {
+void dumpEGLGBMPlatform(const std::string& drmNode) {
   std::cout << "=== GBM Platform ===" << std::endl;
-  const char *node = "/dev/dri/renderD128";
-  const int fd = open(node, O_RDWR);
+  
+  const int fd = open(drmNode.c_str(), O_RDWR);
   if (fd < 0) {
-    std::cerr << "Unable to open " << node << std::endl;
+    std::cerr << "Unable to open " << drmNode << std::endl;
     return;
   }
 
@@ -155,10 +155,11 @@ void dumpEGLGBMPlatform() {
     std::cerr << "Unable to create GDM device" << std::endl;
     return;
   }
+  std::cout << "GBM backend: " << gbm_device_get_backend_name(gbmDevice) << std::endl;
 
   // FIXME: Check EGL extension before passing the identifier to this function
   EGLDisplay eglDisplay = eglGetPlatformDisplay(EGL_PLATFORM_GBM_KHR, gbmDevice, nullptr);
-  if (eglDisplay == EGL_NO_DISPLAY) {
+   if (eglDisplay == EGL_NO_DISPLAY) {
     std::cerr << "Unable to get EGL Display from GBM device" << std::endl;
     return;
   }
@@ -172,6 +173,18 @@ void dumpEGLGBMPlatform() {
   std::cout << "  Initialized EGL for GBM display: " << major << "." << minor
             << " (" << eglQueryString(eglDisplay, EGL_VENDOR) << ")" << std::endl;
 
+ const EGLint configAttribs[] = {
+    EGL_SURFACE_TYPE, drmNode.empty()? EGL_PBUFFER_BIT : EGL_WINDOW_BIT,
+    EGL_BLUE_SIZE, 8,
+    EGL_GREEN_SIZE, 8,
+    EGL_RED_SIZE, 8,
+    EGL_ALPHA_SIZE, 8,
+    EGL_DEPTH_SIZE, 24,
+    EGL_STENCIL_SIZE, 8,
+    EGL_CONFORMANT, EGL_OPENGL_BIT,
+    EGL_CONFIG_CAVEAT, EGL_NONE,
+    EGL_NONE
+  };
 
   EGLint numConfigs;
   EGLConfig config;
@@ -182,8 +195,10 @@ void dumpEGLGBMPlatform() {
 
   const auto gbmSurface = gbm_surface_create(gbmDevice,
                                   256, 256,
-                                  GBM_FORMAT_XRGB8888,
-                                  GBM_BO_USE_RENDERING);
+                                  GBM_FORMAT_ARGB8888,
+// FIXME: For some reason, we have to pass 0 as flags for the nvidia GBM backend
+                                  0);                                  
+//                                  GBM_BO_USE_RENDERING);
   if (!gbmSurface) {
     std::cerr << "Unable to create GBM surface" << std::endl;
     return;
@@ -206,16 +221,21 @@ void dumpEGLGBMPlatform() {
   std::cout << "         renderer: " << glGetString(GL_RENDERER) << std::endl;
   eglDestroyContext(eglDisplay, eglContext);
   eglDestroySurface(eglDisplay, eglSurface);
+  gbm_surface_destroy(gbmSurface);
   eglTerminate(eglDisplay);
 }
 
 } // namespace
 
 class OffscreenContextEGLImpl : public OffscreenContextEGL {
+
 public:
   EGLDisplay eglDisplay;
   EGLSurface eglSurface;
   EGLContext eglContext;
+
+// If eglDisplay is backed by a GBM device.
+  struct gbm_device *gbmDevice = nullptr;
 
   OffscreenContextEGLImpl(int width, int height) : OffscreenContextEGL(width, height) {}
   
@@ -226,24 +246,71 @@ public:
   bool destroy() override {
     return true;
   }
+
+    void getDisplayFromDrmNode(const std::string& drmNode) {
+    this->eglDisplay = EGL_NO_DISPLAY;
+    const int fd = open(drmNode.c_str(), O_RDWR);
+    if (fd < 0) {
+      std::cerr << "Unable to open DRM node " << drmNode << std::endl;
+      return;
+    }
+
+    this->gbmDevice = gbm_create_device(fd);
+    if (!this->gbmDevice) {
+      std::cerr << "Unable to create GDM device" << std::endl;
+      return;
+    }
+
+    // FIXME: Check EGL extension before passing the identifier to this function
+    this->eglDisplay = eglGetPlatformDisplay(EGL_PLATFORM_GBM_KHR, this->gbmDevice, nullptr);
+  }
+
+  void createSurface(const EGLConfig& config,size_t width, size_t height) {
+    if (this->gbmDevice) {
+// FIXME: For some reason, we have to pass 0 as flags for the nvidia GBM backend
+      const auto gbmSurface =
+        gbm_surface_create(this->gbmDevice, width, height,
+                           GBM_FORMAT_ARGB8888, 
+                           0); // GBM_BO_USE_RENDERING
+      if (!gbmSurface) {
+        std::cerr << "Unable to create GBM surface" << std::endl;
+        this->eglSurface = EGL_NO_SURFACE;
+        return;
+      }
+
+      this->eglSurface =
+        eglCreatePlatformWindowSurface(this->eglDisplay, config, gbmSurface, nullptr);
+    }
+    else {
+      const EGLint pbufferAttribs[] = {
+        EGL_WIDTH, width,
+        EGL_HEIGHT, height,
+        EGL_NONE,
+      };
+      this->eglSurface = eglCreatePbufferSurface(this->eglDisplay, config, pbufferAttribs);
+    }
+  }
 };
 
 
-void OffscreenContextEGL::dumpEGLInfo() {
+void OffscreenContextEGL::dumpEGLInfo(const std::string& drmNode) {
 
-  dumpEGLDevicePlatform();
-  dumpEGLGBMPlatform();
+//  dumpEGLDevicePlatform();
+  dumpEGLGBMPlatform(drmNode);
 
 
 }
 
+
+
 std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, size_t height,
-								 size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile)
+								 size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile,
+                 const std::string &drmNode)
 {
   auto ctx = std::make_shared<OffscreenContextEGLImpl>(width, height);
 
- static const EGLint configAttribs[] = {
-    EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+ const EGLint configAttribs[] = {
+    EGL_SURFACE_TYPE, drmNode.empty()? EGL_PBUFFER_BIT : EGL_WINDOW_BIT,
     EGL_BLUE_SIZE, 8,
     EGL_GREEN_SIZE, 8,
     EGL_RED_SIZE, 8,
@@ -252,18 +319,18 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     EGL_STENCIL_SIZE, 8,
     EGL_CONFORMANT, EGL_OPENGL_BIT,
     EGL_CONFIG_CAVEAT, EGL_NONE,
-    // EGL_SAMPLE_BUFFERS, 1,
-    // EGL_SAMPLES, 4,
     EGL_NONE
   };
 
-  const EGLint pbufferAttribs[] = {
-    EGL_WIDTH, width,
-    EGL_HEIGHT, height,
-    EGL_NONE,
-  };
-  
-  ctx->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
+  if (!drmNode.empty()) {
+    std::cout << "Using GBM..." << std::endl;
+    ctx->getDisplayFromDrmNode(drmNode);
+  }
+  else {
+    std::cout << "Using default EGL display..." << std::endl;
+    ctx->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+  } 
   if (ctx->eglDisplay == EGL_NO_DISPLAY) {
     std::cerr << "No EGL display found" << std::endl;
     return nullptr;
@@ -281,13 +348,14 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
   if (eglGetDisplayDriverName) {
     const char *name = eglGetDisplayDriverName(ctx->eglDisplay);
     if (name) {
-      std::cout << "Got EGL display with driver name " << name << std::endl;
+      std::cout << "Got EGL display with driver name: " << name << std::endl;
     }
   }
 
   EGLint numConfigs;
   EGLConfig config;
-  if (!eglChooseConfig(ctx->eglDisplay, configAttribs, &config, 1, &numConfigs)) {
+  bool gotConfig = eglChooseConfig(ctx->eglDisplay, configAttribs, &config, 1, &numConfigs);
+  if (!gotConfig || numConfigs == 0) {
     std::cerr << "Failed to choose config (eglError: " << std::hex << eglGetError() << ")" << std::endl;
     return nullptr;
   }
@@ -295,7 +363,8 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     std::cerr << "Bind EGL_OPENGL_API failed!" << std::endl;
     return nullptr;
   }
-  ctx->eglSurface = eglCreatePbufferSurface(ctx->eglDisplay, config, pbufferAttribs);
+
+  ctx->createSurface(config, width, height);    
   if (ctx->eglSurface == EGL_NO_SURFACE) {
     std::cerr << "Unable to create EGL surface (eglError: " << eglGetError() << ")" << std::endl;
     return nullptr;

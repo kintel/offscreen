@@ -63,3 +63,12 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 ```bash
 ./offscreen --context egl --opengl 4 --profile core --mode modern
 ```
+### Linux Choose GPU
+
+```bash
+./offscreen --context egl --gpu /dev/dri/renderD128
+```
+
+```bash
+./offscreen --context egl --gpu /dev/dri/renderD129
+```
