@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
   bool argInvisible = false;
   std::string argRenderMode = "auto";
   bool argPrintHelp = false;
+  std::string argGPU = "";
 
   // First configure all possible command line options.
   CommandLine args("OpenGL context tester.");
@@ -62,6 +63,7 @@ int main(int argc, char *argv[])
   args.addArgument({"--profile"}, &argProfile, "OpenGL profile [core | compatibility]");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
   args.addArgument({"--mode"}, &argRenderMode, "Rendering mode [auto | immediate | modern]");
+  args.addArgument({"--gpu"}, &argGPU, "[EGL] Which GPU to use (e.g. /dev/dri/renderD128)");
   args.addArgument({"-h", "--help"}, &argPrintHelp, "Print this help.");
 
   // Then do the actual parsing.
@@ -88,10 +90,11 @@ int main(int argc, char *argv[])
 
 #if HAS_EGL
   if (argContextProvider == "egl") {
-    OffscreenContextEGL::dumpEGLInfo();
+    OffscreenContextEGL::dumpEGLInfo(argGPU);
   }
 #endif
 
+  std::cout << "================:\n";
   std::cout << "Requesting context and framebuffer:\n";
   std::cout << "  Context provider: " << argContextProvider << "\n";
   std::cout << "  OpenGL: " << major << "." << minor << "\n";
@@ -110,7 +113,8 @@ int main(int argc, char *argv[])
 #endif
 #if HAS_EGL
   if (argContextProvider == "egl") {
-    ctx = OffscreenContextEGL::create(argWidth, argHeight, major, minor, argProfile == "compatibility");
+    ctx = OffscreenContextEGL::create(argWidth, argHeight, major, minor, argProfile == "compatibility",
+    argGPU);
   }
   else
 #endif
@@ -146,18 +150,18 @@ int main(int argc, char *argv[])
 #endif
 
   // FIXME: Add flag to control verbosity or extension output
-  // if (major == 2) {
-  //   const auto *extensions = glGetString(GL_EXTENSIONS);
-  //   std::cout << extensions << std::endl;
-  // }
-  // else {
-  //   GLint numExtensions;
-  //   glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-  //   for(auto i = 0; i < numExtensions; ++i) {
-  //     std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
-  //   }
-  //   std::cout << std::endl;
-  // }
+  if (major == 2) {
+    const auto *extensions = glGetString(GL_EXTENSIONS);
+    std::cout << extensions << std::endl;
+  }
+  else {
+    GLint numExtensions;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+    for(auto i = 0; i < numExtensions; ++i) {
+      std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
+    }
+    std::cout << std::endl;
+  }
 
 #ifdef __APPLE__
 // FIXME: This can probably be removed: It was just some code to prove that MyNSGLGetProcAddress() returned the same function pointer as the OpenGL library itself provides.
