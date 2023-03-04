@@ -72,3 +72,26 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 ```bash
 ./offscreen --context egl --gpu /dev/dri/renderD129
 ```
+
+## Context Notes
+
+### Linux
+
+#### GPU Permissions
+
+Sometimes, users don't have access to GPUs and thus cannot render. A common cause for this is too strict permission on /dev/dri/renderD128. Usually, this node would have 660 permissions with RW permissions given to a special group (e.g. render or video). Make sure that users are added to this group to allow using the GPU.
+
+This may cause a fallback to a software renderer.
+
+Can be validating by checking if running under sudo changes the behavior.
+
+#### Default EGL Device
+
+The default EGL display generally only works when executing in a native desktop session.
+Running on ssh or using screen sharing (unless it's a VNC-style literal sharing of an active session), the default display may not return a valid EGL display. Symptom: eglInitialize() generates EGL_NOT_INITIALIZED.
+
+In these cases, we need to search for a proper display using eglQueryDevicesEXT() and eglGetPlatformDisplayEXT().
+
+#### Choosing a custom GPU
+
+TODO: How to query DRM nodes.
