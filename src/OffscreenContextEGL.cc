@@ -290,6 +290,21 @@ public:
     this->eglDisplay = eglGetPlatformDisplay(EGL_PLATFORM_GBM_KHR, this->gbmDevice, nullptr);
   }
 
+  void findPlatformDisplay() {
+    std::cout << "Trying Platform display..." << std::endl;
+    auto eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) eglGetProcAddress("eglQueryDevicesEXT");
+    auto eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress("eglGetPlatformDisplayEXT");
+    if (eglQueryDevicesEXT && eglGetPlatformDisplayEXT) {
+      EGLDeviceEXT eglDevice;
+      EGLint numDevices = 0;
+      eglQueryDevicesEXT(1, &eglDevice, &numDevices);
+      if (numDevices > 0) {
+      // FIXME: Attribs
+        this->eglDisplay =  eglGetPlatformDisplayEXT(EGL_PLATFORM_DEVICE_EXT, eglDevice, nullptr);
+      }
+    }
+  }
+
   void createSurface(const EGLConfig& config,size_t width, size_t height) {
     if (this->gbmDevice) {
 // FIXME: For some reason, we have to pass 0 as flags for the nvidia GBM backend
@@ -327,7 +342,6 @@ void OffscreenContextEGL::dumpEGLInfo(const std::string& drmNode) {
 }
 
 
-
 std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, size_t height,
 								 size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile,
                  const std::string &drmNode)
@@ -335,7 +349,9 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
   auto ctx = std::make_shared<OffscreenContextEGLImpl>(width, height);
 
  const EGLint configAttribs[] = {
-    EGL_SURFACE_TYPE, drmNode.empty()? EGL_PBUFFER_BIT : EGL_WINDOW_BIT,
+    // For some reason, we have to request a "window" surface when using GBM, although
+    // we're rendering offscreen
+    EGL_SURFACE_TYPE, drmNode.empty() ? EGL_PBUFFER_BIT : EGL_WINDOW_BIT,
     EGL_BLUE_SIZE, 8,
     EGL_GREEN_SIZE, 8,
     EGL_RED_SIZE, 8,
@@ -347,15 +363,17 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     EGL_NONE
   };
 
-
   if (!drmNode.empty()) {
     std::cout << "Using GBM..." << std::endl;
     ctx->getDisplayFromDrmNode(drmNode);
-  }
-  else {
-    std::cout << "Using default EGL display..." << std::endl;
-    ctx->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+  } else {
+    ctx->findPlatformDisplay();
+    if (ctx->eglDisplay == EGL_NO_DISPLAY) {
+      std::cout << "Trying default EGL display..." << std::endl;
+      ctx->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    }
   } 
+
   if (ctx->eglDisplay == EGL_NO_DISPLAY) {
     std::cerr << "No EGL display found" << std::endl;
     return nullptr;
