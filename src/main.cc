@@ -47,12 +47,13 @@ int main(int argc, char *argv[])
   uint32_t argWidth = 512;
   uint32_t argHeight = 512;
   std::string argGLVersion = "2.1";
-  std::string argContextProvider = "NSOpenGL";
+  std::string argContextProvider;
   std::string argProfile = "compatibility";
   bool argInvisible = false;
   std::string argRenderMode = "auto";
-  bool argPrintHelp = false;
   std::string argGPU = "";
+  bool argVerbose = false;
+  bool argPrintHelp = false;
 
   // First configure all possible command line options.
   CommandLine args("OpenGL context tester.");
@@ -64,6 +65,7 @@ int main(int argc, char *argv[])
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
   args.addArgument({"--mode"}, &argRenderMode, "Rendering mode [auto | immediate | modern]");
   args.addArgument({"--gpu"}, &argGPU, "[EGL] Which GPU to use (e.g. /dev/dri/renderD128)");
+  args.addArgument({"-v", "--verbose"}, &argVerbose, "Verbose output.");
   args.addArgument({"-h", "--help"}, &argPrintHelp, "Print this help.");
 
   // Then do the actual parsing.
@@ -89,7 +91,7 @@ int main(int argc, char *argv[])
   }
 
 #if HAS_EGL
-  if (argContextProvider == "egl") {
+  if (argVerbose && argContextProvider == "egl") {
     OffscreenContextEGL::dumpEGLInfo(argGPU);
   }
 #endif
@@ -101,6 +103,15 @@ int main(int argc, char *argv[])
   std::cout << "  Size: " << argWidth << " x " << argHeight << "\n";
 
   std::shared_ptr<OpenGLContext> ctx;
+
+  if (argContextProvider.empty()) {
+#ifdef __APPLE__
+    argContextProvider = "cgl";
+#elif defined(HAS_EGL)
+    argContextProvider = "egl";
+#endif
+  }
+
   std::transform(argContextProvider.begin(), argContextProvider.end(), argContextProvider.begin(), ::tolower);
 #ifdef __APPLE__
   if (argContextProvider == "nsopengl") {
@@ -149,18 +160,19 @@ int main(int argc, char *argv[])
   printf("GLAD glFramebufferTexture: %p\n", glFramebufferTexture);
 #endif
 
-  // FIXME: Add flag to control verbosity or extension output
-  if (major == 2) {
-    const auto *extensions = glGetString(GL_EXTENSIONS);
-    std::cout << extensions << std::endl;
-  }
-  else {
-    GLint numExtensions;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-    for(auto i = 0; i < numExtensions; ++i) {
-      std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
+  if (argVerbose) {
+    if (major == 2) {
+      const auto *extensions = glGetString(GL_EXTENSIONS);
+      std::cout << extensions << std::endl;
     }
-    std::cout << std::endl;
+    else {
+      GLint numExtensions;
+      glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+      for(auto i = 0; i < numExtensions; ++i) {
+        std::cout << glGetStringi(GL_EXTENSIONS, i) << " ";
+      }
+      std::cout << std::endl;
+    }
   }
 
 #ifdef __APPLE__
