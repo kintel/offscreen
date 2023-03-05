@@ -2,6 +2,21 @@
 
 Multi-platform OpenGL offscreen tester.
 
+## Platforms
+
+* macOS
+   * Defaults to non-wrangled OpenGL
+   * Supports: NSOpenGL, CGL
+   * OpenGL 2, OpenGL 4
+* Linux
+   * Supports: EGL
+   * Supports multi-GPU
+   * OpenGL 2-4
+* Raspberry Pi
+   * Only OpenGL 2 for now
+* Windows
+   * Not implemented
+
 ## TODO
 
 * Basic GLX support
