@@ -2,6 +2,8 @@
 
 #include <fcntl.h>
 #include <iostream>
+#include <sstream>
+#include <set>
 #include <gbm.h>
 
 #include "EGL/egl.h"
@@ -291,6 +293,20 @@ public:
   }
 
   void findPlatformDisplay() {
+    std::set<std::string> clientExtensions;
+    std::string ext = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+    std::cout << ext << std::endl;
+    std::istringstream iss(ext);
+    while (iss) {
+      std::string extension;
+      iss >> extension;
+      clientExtensions.insert(extension);
+    }
+
+    if (!clientExtensions.contains("EGL_EXT_platform_device")) {
+      return;
+    }
+
     std::cout << "Trying Platform display..." << std::endl;
     auto eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) eglGetProcAddress("eglQueryDevicesEXT");
     auto eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress("eglGetPlatformDisplayEXT");
@@ -367,6 +383,8 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     std::cout << "Using GBM..." << std::endl;
     ctx->getDisplayFromDrmNode(drmNode);
   } else {
+    // FIXME: Should we try default display first?
+    // If so, we also have to try initializing it
     ctx->findPlatformDisplay();
     if (ctx->eglDisplay == EGL_NO_DISPLAY) {
       std::cout << "Trying default EGL display..." << std::endl;
