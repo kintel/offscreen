@@ -31,11 +31,12 @@ Multi-platform OpenGL offscreen tester.
 * cmake
 * glfw3
 * OpenGL
+* Linux: libgbm
 
 **Linux (apt)**
 
 ```bash
-sudo apt install cmake libglfw3-dev libgl1-mesa-dev libegl1-mesa-dev
+sudo apt install cmake libglfw3-dev libgl1-mesa-dev libegl1-mesa-dev libgbm-dev
 ```
 
 ## Examples
