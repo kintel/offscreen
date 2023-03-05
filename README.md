@@ -7,7 +7,7 @@ Multi-platform OpenGL offscreen tester.
 * Basic GLX support
 * Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
 * Qt-backed GL context
-* Pure GLES mode?
+* Pure GLES mode, useful on Raspberry Pi
 * Look into "warning gl.h and gl3.h are both included"
 * Windows support
 

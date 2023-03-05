@@ -115,9 +115,14 @@ void setupColorWheel(MyState &state) {
 
   GL_CHECK();
   glUseProgram(state.shaderProgram);
+#ifdef __APPLE__
   GL_CHECK(glGenVertexArraysAPPLE(1, &state.vao));
   GL_CHECK(glBindVertexArrayAPPLE(state.vao));
-
+#else
+  GL_CHECK(glGenVertexArrays(1, &state.vao));
+  GL_CHECK(glBindVertexArray(state.vao));
+#endif
+ 
   GLuint vbo;
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -173,8 +178,13 @@ void setupCenter(MyState &state) {
 
   GL_CHECK();
   glUseProgram(state.shaderProgram);
+#ifdef __APPLE__
   GL_CHECK(glGenVertexArraysAPPLE(1, &state.vao));
   GL_CHECK(glBindVertexArrayAPPLE(state.vao));
+#else
+  GL_CHECK(glGenVertexArrays(1, &state.vao));
+  GL_CHECK(glBindVertexArray(state.vao));
+#endif
 
   GLuint vbo;
   glGenBuffers(1, &vbo);
@@ -206,7 +216,11 @@ void renderModernOGL2(const std::vector<MyState>& states) {
   GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
   for (const auto& state : states) {
     GL_CHECK(glUseProgram(state.shaderProgram));
+#ifdef __APPLE__
     GL_CHECK(glBindVertexArrayAPPLE(state.vao));
+#else
+    GL_CHECK(glBindVertexArray(state.vao));
+#endif
     GL_CHECK(glDrawElements(GL_TRIANGLES, state.numTris * 3, GL_UNSIGNED_BYTE, 0));
   }
 }
