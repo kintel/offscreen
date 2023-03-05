@@ -1,13 +1,12 @@
 #include "render_modern_ogl3.h"
 
-#include <numbers>
 #include <math.h>
 
 #include "state.h"
 
-using std::numbers::pi;
-
 namespace {
+
+constexpr double pi = 3.14159265358979323846;
 
 float colorWheelVertices[] = {
   0.0f, 0.0f, 0.0f, 1, 1, 1,

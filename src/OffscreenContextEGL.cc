@@ -303,7 +303,7 @@ public:
       clientExtensions.insert(extension);
     }
 
-    if (!clientExtensions.contains("EGL_EXT_platform_device")) {
+    if (clientExtensions.find("EGL_EXT_platform_device") == clientExtensions.end()) {
       return;
     }
 

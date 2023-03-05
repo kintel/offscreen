@@ -65,7 +65,8 @@ set(SRCS
     )
 
 target_sources(offscreen PRIVATE ${SRCS})
-set_property(TARGET offscreen PROPERTY CXX_STANDARD 20)
+# Using C++17 as my RaspberryPi runs gcc=8.3 which doesn't implement <numbers>
+set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
 
 message(STATUS " ")
 message(STATUS "====================================")

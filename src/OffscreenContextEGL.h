@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "OffscreenContext.h"
 
@@ -13,5 +14,5 @@ public:
   static std::shared_ptr<OffscreenContextEGL> create(
     size_t width, size_t height, size_t majorGLVersion, 
     size_t minorGLVersion, bool compatibilityProfile,
-    const std::string& drmNode = nullptr);
+    const std::string& drmNode = "");
 };
