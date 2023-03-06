@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <set>
+#include <vector>
 #include <gbm.h>
 
 #include "EGL/egl.h"
@@ -365,14 +366,23 @@ void OffscreenContextEGL::dumpEGLInfo(const std::string& drmNode) {
 
 }
 
-
+// Typical variants:
+// OpenGL core major.minor
+// OpenGL compatibility major.minor
+// OpenGL ES major.minor
 std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, size_t height,
-								 size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile,
+								 size_t majorGLVersion, size_t minorGLVersion, bool gles, bool compatibilityProfile,
                  const std::string &drmNode)
 {
   auto ctx = std::make_shared<OffscreenContextEGLImpl>(width, height);
 
- const EGLint configAttribs[] = {
+  EGLint conformant;
+  if (!gles) conformant = EGL_OPENGL_BIT;
+  else if (majorGLVersion >= 3) conformant = EGL_OPENGL_ES3_BIT;
+  else if (majorGLVersion >= 2) conformant = EGL_OPENGL_ES2_BIT;
+  else conformant = EGL_OPENGL_ES_BIT;
+
+  const EGLint configAttribs[] = {
     // For some reason, we have to request a "window" surface when using GBM, although
     // we're rendering offscreen
     EGL_SURFACE_TYPE, drmNode.empty() ? EGL_PBUFFER_BIT : EGL_WINDOW_BIT,
@@ -382,7 +392,7 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     EGL_ALPHA_SIZE, 8,
     EGL_DEPTH_SIZE, 24,
     EGL_STENCIL_SIZE, 8,
-    EGL_CONFORMANT, EGL_OPENGL_BIT,
+    EGL_CONFORMANT, conformant,
     EGL_CONFIG_CAVEAT, EGL_NONE,
     EGL_NONE
   };
@@ -428,8 +438,8 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     std::cerr << "Failed to choose config (eglError: " << std::hex << eglGetError() << ")" << std::endl;
     return nullptr;
   }
-  if (!eglBindAPI(EGL_OPENGL_API)) {
-    std::cerr << "Bind EGL_OPENGL_API failed!" << std::endl;
+  if (!eglBindAPI(gles ? EGL_OPENGL_ES_API : EGL_OPENGL_API)) {
+    std::cerr << "eglBindAPI() failed!" << std::endl;
     return nullptr;
   }
 
@@ -439,13 +449,16 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
     return nullptr;
   }
 
-  EGLint ctxattr[] = {
-    EGL_CONTEXT_MAJOR_VERSION, majorGLVersion,
-    EGL_CONTEXT_MINOR_VERSION, minorGLVersion,
-    EGL_CONTEXT_OPENGL_PROFILE_MASK, compatibilityProfile ? EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT : EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-    EGL_NONE
+  std::vector<EGLint> ctxattr = {
+    EGL_CONTEXT_MAJOR_VERSION, static_cast<EGLint>(majorGLVersion),
+    EGL_CONTEXT_MINOR_VERSION, static_cast<EGLint>(minorGLVersion),
   };
-  ctx->eglContext = eglCreateContext(ctx->eglDisplay, config, EGL_NO_CONTEXT, ctxattr);
+  if (!gles) {
+    ctxattr.push_back(EGL_CONTEXT_OPENGL_PROFILE_MASK);
+    ctxattr.push_back(compatibilityProfile ? EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT : EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT);
+  }
+  ctxattr.push_back(EGL_NONE);
+  ctx->eglContext = eglCreateContext(ctx->eglDisplay, config, EGL_NO_CONTEXT, ctxattr.data());
   if (ctx->eglContext == EGL_NO_CONTEXT) {
     std::cerr << "Unable to create EGL context (eglError: " << eglGetError() << ")" << std::endl;
     return nullptr;

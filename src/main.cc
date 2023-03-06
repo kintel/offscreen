@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
 
   uint32_t argWidth = 512;
   uint32_t argHeight = 512;
-  std::string argGLVersion = "2.1";
+  std::string argGLVersion = "";
+  std::string argGLESVersion = "";
   std::string argContextProvider;
   std::string argProfile = "compatibility";
   bool argInvisible = false;
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
   args.addArgument({"--width"}, &argWidth, "Framebuffer width");
   args.addArgument({"--height"}, &argHeight, "Framebuffer height");
   args.addArgument({"--opengl"}, &argGLVersion, "OpenGL version");
+  args.addArgument({"--gles"}, &argGLESVersion, "OpenGL ES version");
   args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider");
   args.addArgument({"--profile"}, &argProfile, "OpenGL profile [core | compatibility]");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
@@ -82,20 +84,33 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  std::string requestVersion;
+  if (!argGLVersion.empty() && !argGLESVersion.empty()) {
+    std::cerr << "Only one of --opengl or --gles can be specified" << std::endl;
+    return 1;
+  } else if (!argGLVersion.empty()) {
+    requestVersion = argGLVersion;
+  } else if (!argGLESVersion.empty()) {
+    requestVersion = argGLESVersion;
+  } else {
+    argGLVersion = "2.1"; // default to OpenGL 2.1
+  }
+  bool requestGLES = !argGLESVersion.empty();
+
+  int requestMajor = 0;
+  int requestMinor = 0;
+  int numVersionElements = sscanf(requestVersion.c_str(), "%d.%d", &requestMajor, &requestMinor);
+  if (numVersionElements == 0) {
+    std::cerr << "Error parsing requestec GL version string \"" << requestVersion << "\"" << std::endl;
+    return 1;
+  }
+
   if (argContextProvider.empty()) {
 #ifdef __APPLE__
     argContextProvider = "cgl";
 #elif defined(HAS_EGL)
     argContextProvider = "egl";
 #endif
-  }
-
-  int major = 0;
-  int minor = 0;
-  int numVersionElements = sscanf(argGLVersion.c_str(), "%d.%d", &major, &minor);
-  if (numVersionElements == 0) {
-    std::cerr << "Error parsing GL version string \"" << argGLVersion << "\"" << std::endl;
-    return 1;
   }
 
 #if HAS_EGL
@@ -107,7 +122,7 @@ int main(int argc, char *argv[])
   std::cout << "================:\n";
   std::cout << "Requesting context and framebuffer:\n";
   std::cout << "  Context provider: " << argContextProvider << "\n";
-  std::cout << "  OpenGL: " << major << "." << minor << "\n";
+  std::cout << "  " << (requestGLES ? "GLES" : "OpenGL") << ": " << requestMajor << "." << requestMinor << "\n";
   std::cout << "  Size: " << argWidth << " x " << argHeight << "\n";
 
   std::shared_ptr<OpenGLContext> ctx;
@@ -124,13 +139,13 @@ int main(int argc, char *argv[])
 #endif
 #if HAS_EGL
   if (argContextProvider == "egl") {
-    ctx = OffscreenContextEGL::create(argWidth, argHeight, major, minor, argProfile == "compatibility",
+    ctx = OffscreenContextEGL::create(argWidth, argHeight, requestMajor, requestMinor, requestGLES, argProfile == "compatibility",
     argGPU);
   }
   else
 #endif
   if (argContextProvider == "glfw") {
-    ctx = GLFWContext::create(argWidth, argHeight, major, minor, argInvisible);
+    ctx = GLFWContext::create(argWidth, argHeight, requestMajor, requestMinor, argInvisible);
   }
   else {
     std::cerr << "Unknown OpenGL context provider \"" << argContextProvider << "\"" << std::endl;
@@ -161,7 +176,7 @@ int main(int argc, char *argv[])
 #endif
 
   if (argVerbose) {
-    if (major == 2) {
+    if (requestMajor == 2) {
       const auto *extensions = glGetString(GL_EXTENSIONS);
       std::cout << extensions << std::endl;
     }
@@ -183,9 +198,19 @@ int main(int argc, char *argv[])
   GL_CHECK();
 #endif
 
-  const char *glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+  std::string glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+  if (!argGLESVersion.empty()) {
+    // FIXME: What about "OpenGL ES-CM 1.1 Mesa 22.2.5" ?
+    if (glVersion.rfind("OpenGL ES ", 0) != 0) {
+      std::cerr << "Unexpected GL_VERSION '" << glVersion << "' for OpenGL ES" << std::endl;
+      return 1;
+    }
+    glVersion = glVersion.substr(10);
+  }
+
+  std::cout << "glVersion: " << glVersion << std::endl;
   int glMajor, glMinor;
-  int numGlVersionElements = sscanf(glVersion, "%d.%d", &glMajor, &glMinor);
+  int numGlVersionElements = sscanf(glVersion.c_str(), "%d.%d", &glMajor, &glMinor);
   if (numGlVersionElements != 2) {
     std::cerr << "Unable to parse OpenGL version \"" << glVersion << "\"" << std::endl;
     return 1;
@@ -205,7 +230,7 @@ int main(int argc, char *argv[])
   }
 
   std::cout << "Got context and framebuffer:\n";
-  std::cout << "  OpenGL: " << glVersion << " (" << glGetString(GL_VENDOR) << ")" << std::endl;
+  std::cout << "  " << (argGLVersion.empty() ? "GLES" : "OpenGL") << ": " << glVersion << " (" << glGetString(GL_VENDOR) << ")" << std::endl;
   std::cout << "  renderer: " << glGetString(GL_RENDERER) << std::endl;
 
   if (glMajor > 3 || glMajor == 3 && glMinor >= 2) {
