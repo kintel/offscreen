@@ -48,8 +48,6 @@ const char* eglGetErrorString( EGLint error )
     EGL_ALPHA_SIZE, 8,
     EGL_DEPTH_SIZE, 24,
     EGL_STENCIL_SIZE, 8,
-    EGL_CONFORMANT, EGL_OPENGL_BIT,
-    EGL_CONFIG_CAVEAT, EGL_NONE,
     EGL_NONE
   };
 
@@ -107,6 +105,16 @@ const char* eglGetErrorString( EGLint error )
     EGLint val;
     eglGetConfigAttrib(eglDisplay, configs[i], EGL_CONFIG_ID, &val);
     std::cout << "      EGL_CONFIG_ID: " << val << std::endl;
+    eglGetConfigAttrib(eglDisplay, configs[i], EGL_CONFORMANT, &val);
+    std::cout << "      "
+      << (val & EGL_OPENGL_BIT ? "OpenGL " : "")
+      << (val & EGL_OPENGL_ES_BIT ? "GLES " : "")
+      << (val & EGL_OPENGL_ES2_BIT ? "GLES2 " : "")
+      << (val & EGL_OPENGL_ES3_BIT ? "GLES3" : "") << std::endl;
+    eglGetConfigAttrib(eglDisplay, configs[i], EGL_CONFIG_CAVEAT, &val);
+    if (val != EGL_NONE) {
+      std::cout << "      EGL_CONFIG_CAVEAT: " << val << std::endl;
+    }
   
     const auto& config = configs[i];
     const auto eglSurface = eglCreatePbufferSurface(eglDisplay, config, pbufferAttribs);
@@ -351,7 +359,7 @@ public:
 
 void OffscreenContextEGL::dumpEGLInfo(const std::string& drmNode) {
 
-//  dumpEGLDevicePlatform();
+  dumpEGLDevicePlatform();
   dumpEGLGBMPlatform(drmNode);
 
 
