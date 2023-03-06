@@ -82,6 +82,14 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  if (argContextProvider.empty()) {
+#ifdef __APPLE__
+    argContextProvider = "cgl";
+#elif defined(HAS_EGL)
+    argContextProvider = "egl";
+#endif
+  }
+
   int major = 0;
   int minor = 0;
   int numVersionElements = sscanf(argGLVersion.c_str(), "%d.%d", &major, &minor);
@@ -103,14 +111,6 @@ int main(int argc, char *argv[])
   std::cout << "  Size: " << argWidth << " x " << argHeight << "\n";
 
   std::shared_ptr<OpenGLContext> ctx;
-
-  if (argContextProvider.empty()) {
-#ifdef __APPLE__
-    argContextProvider = "cgl";
-#elif defined(HAS_EGL)
-    argContextProvider = "egl";
-#endif
-  }
 
   std::transform(argContextProvider.begin(), argContextProvider.end(), argContextProvider.begin(), ::tolower);
 #ifdef __APPLE__
