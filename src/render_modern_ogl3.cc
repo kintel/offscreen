@@ -54,7 +54,30 @@ const char *perVertexColor_vert_330 = R"(#version 330 core
     }
   )";
 
+const char *perVertexColor_vert_300_es = R"(#version 300 es
+    layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
+
+    out vec3 ourColor;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      ourColor = aColor;
+    }
+  )";
+
 const char *default_vert_330 = R"(#version 330 core
+    layout (location = 0) in vec3 aPos;
+
+    out vec3 ourColor;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      ourColor = vec3(1,1,1);
+    }
+  )";
+
+const char *default_vert_300_es = R"(#version 300 es
     layout (location = 0) in vec3 aPos;
 
     out vec3 ourColor;
@@ -73,6 +96,17 @@ const char *default_frag_330 = R"(#version 330 core
       FragColor = vec4(ourColor, 1.0);
     }
   )";
+
+const char *default_frag_300_es = R"(#version 300 es
+   precision mediump float;
+   out vec4 FragColor;
+    in vec3 ourColor;
+
+    void main() {
+      FragColor = vec4(ourColor, 1.0);
+    }
+  )";
+
 
 const char *perVertexColor_vert_140 = R"(#version 140
     in vec3 aPos;
@@ -111,8 +145,11 @@ void setupColorWheel(MyState &state, const std::string &glslVersion) {
   if (glslVersion == "330") {
     vertexShaderSource = perVertexColor_vert_330;
   }
-  else {
+  else if (glslVersion == "140") {
     vertexShaderSource = perVertexColor_vert_140;
+  }
+  else { // FIXME: Check specifically for GLSL ES shaders
+    vertexShaderSource = perVertexColor_vert_300_es;
   }
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -124,14 +161,15 @@ void setupColorWheel(MyState &state, const std::string &glslVersion) {
     glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
     std::cerr << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
   }
-
   const char *fragmentShaderSource;
   if (glslVersion == "330") {
     fragmentShaderSource = default_frag_330;
-  }
-  else {
+  } else if (glslVersion == "140") {
     fragmentShaderSource = default_frag_140;
+  } else { // FIXME: Check specifically for GLSL ES shaders
+    fragmentShaderSource = default_frag_300_es;
   }
+
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
   glCompileShader(fragmentShader);
@@ -187,9 +225,10 @@ void setupCenter(MyState &state, const std::string &glslVersion) {
   const char *vertexShaderSource;
   if (glslVersion == "330") {
     vertexShaderSource = default_vert_330;
-  }
-  else {
+  } else if (glslVersion == "140") {
     vertexShaderSource = default_vert_140;
+  } else { // FIXME: Check specifically for GLSL ES shaders
+    vertexShaderSource = default_vert_300_es;
   }
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -205,9 +244,10 @@ void setupCenter(MyState &state, const std::string &glslVersion) {
   const char *fragmentShaderSource;
   if (glslVersion == "330") {
     fragmentShaderSource = default_frag_330;
-  }
-  else {
+  } else if (glslVersion == "140") {
     fragmentShaderSource = default_frag_140;
+  } else { // FIXME: Check specifically for GLSL ES shaders
+    fragmentShaderSource = default_frag_300_es;
   }
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);

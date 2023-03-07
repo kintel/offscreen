@@ -7,10 +7,7 @@
 #include <vector>
 #include <gbm.h>
 
-#include "EGL/egl.h"
-#define EGL_EGLEXT_PROTOTYPES
-#include <EGL/eglext.h>
-
+#include "glad/egl.h"
 #include "GL/gl.h"
 
 namespace {
@@ -376,6 +373,14 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
 {
   auto ctx = std::make_shared<OffscreenContextEGLImpl>(width, height);
 
+  int initialEglVersion = gladLoaderLoadEGL(NULL);
+  if (!initialEglVersion) {
+    std::cerr << "gladLoaderLoadEGL(NULL): Unable to load EGL" << std::endl;
+    return nullptr;
+  }
+  std::cout << "Loaded EGL " << GLAD_VERSION_MAJOR(initialEglVersion) << "."
+    << GLAD_VERSION_MINOR(initialEglVersion) << " on first load." << std::endl;
+  
   EGLint conformant;
   if (!gles) conformant = EGL_OPENGL_BIT;
   else if (majorGLVersion >= 3) conformant = EGL_OPENGL_ES3_BIT;
@@ -422,6 +427,13 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
   }
 
   std::cout << "EGL Version: " << major << "." << minor << " (" << eglQueryString(ctx->eglDisplay, EGL_VENDOR) << ")" << std::endl;
+
+  const auto eglVersion = gladLoaderLoadEGL(ctx->eglDisplay);
+  if (!eglVersion) {
+    std::cerr << "gladLoaderLoadEGL(eglDisplay): Unable to reload EGL" << std::endl;
+    return nullptr;
+  }
+  std::cout << "Loaded EGL " << GLAD_VERSION_MAJOR(eglVersion) << "." << GLAD_VERSION_MINOR(eglVersion) << " after reload" << std::endl;
 
   auto eglGetDisplayDriverName = (PFNEGLGETDISPLAYDRIVERNAMEPROC) eglGetProcAddress("eglGetDisplayDriverName");
   if (eglGetDisplayDriverName) {

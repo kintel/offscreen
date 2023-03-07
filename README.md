@@ -12,6 +12,7 @@ Multi-platform OpenGL offscreen tester.
    * Supports: EGL
    * Supports multi-GPU
    * OpenGL 2-4
+   * GLES2-3
 * Raspberry Pi
    * Only OpenGL 2 for now
 * Windows

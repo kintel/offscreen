@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
   std::cout << "  " << (argGLVersion.empty() ? "GLES" : "OpenGL") << ": " << glVersion << " (" << glGetString(GL_VENDOR) << ")" << std::endl;
   std::cout << "  renderer: " << glGetString(GL_RENDERER) << std::endl;
 
-  if (glMajor > 3 || glMajor == 3 && glMinor >= 2) {
+  if (!requestGLES && (glMajor > 3 || glMajor == 3 && glMinor >= 2)) {
     GLint profile = 0;
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
     GLint flags = 0;
@@ -272,12 +272,20 @@ int main(int argc, char *argv[])
     render = renderImmediate;
   } else {
     std::string glslVersion = "120";
-    if (glMajor >= 4 || glMajor == 3 && glMinor >= 3) {
-      glslVersion = "330";
-    } else if (glMajor == 3) {
-      glslVersion = "140";
+    if (!requestGLES) {
+      if (glMajor >= 4 || glMajor == 3 && glMinor >= 3) {
+        glslVersion = "330";
+      } else if (glMajor == 3) {
+        glslVersion = "140";
+      }
+    } else {
+      if (glMajor >= 3) {
+        glslVersion = "300 es";
+      } else if (glMajor == 2) {
+        glslVersion = "100 es";
+      }
     }
-    if (glMajor >= 3) {
+    if (requestGLES || glMajor >= 3) {
       setup = [&states, &glslVersion]() {
 	setupModernOGL3(states, glslVersion);
       };
