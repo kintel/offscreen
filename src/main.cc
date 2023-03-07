@@ -3,6 +3,7 @@
 
 #ifdef USE_GLAD
 #define GLAD_GL_IMPLEMENTATION
+#define GLAD_EGL_IMPLEMENTATION
 #endif
 #include "system-gl.h"
 
@@ -94,6 +95,7 @@ int main(int argc, char *argv[])
     requestVersion = argGLESVersion;
   } else {
     argGLVersion = "2.1"; // default to OpenGL 2.1
+    requestVersion = argGLVersion;
   }
   bool requestGLES = !argGLESVersion.empty();
 
@@ -156,19 +158,21 @@ int main(int argc, char *argv[])
     std::cerr << "Error: Unable to create GL context" << std::endl;
     return 1;
   }
-
   ctx->makeCurrent();
 
 #ifdef USE_GLAD
   int version;
   if (argContextProvider == "glfw") {
-    version = gladLoadGL(glfwGetProcAddress);
-  }
-  else {
-    version = gladLoaderLoadGL();
+    version = requestGLES ? gladLoadGLES2(glfwGetProcAddress) : gladLoadGL(glfwGetProcAddress);
+//  } else if (argContextProvider == "egl") {
+//  std::cout << "CCC: " << eglGetProcAddress << std::endl;
+//    version = requestGLES ? gladLoadGLES2(eglGetProcAddress) : gladLoadGL(eglGetProcAddress);
+//  std::cout << "DDD" << std::endl;
+  } else {
+    version = requestGLES ? gladLoaderLoadGLES2() : gladLoaderLoadGL();
   }
   if (version == 0) {
-    std::cout << "GLAD: Failed to initialize OpenGL context" << std::endl;
+    std::cout << "GLAD: Failed to initialize " << (requestGLES ? "GLES" : "OpenGL") << " context" << std::endl;
     return 1;
   }
   printf("GLAD: Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));

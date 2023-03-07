@@ -3,6 +3,7 @@
 #include <iostream>
 
 #ifdef USE_GLAD
+#define GLAD_GLES2
 #include "glad/gl.h"
 #endif
 

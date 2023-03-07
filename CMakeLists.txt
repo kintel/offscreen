@@ -63,8 +63,8 @@ set(SRCS
     ${SRCS_EGL}
     ${SRCS_APPLE}
     )
-
 target_sources(offscreen PRIVATE ${SRCS})
+target_include_directories(offscreen PUBLIC "${CMAKE_SOURCE_DIR}/src")
 # Using C++17 as my RaspberryPi runs gcc=8.3 which doesn't implement <numbers>
 set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
 
