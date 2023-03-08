@@ -7,6 +7,11 @@
 #include "glad/gl.h"
 #endif
 
+#ifdef _WIN32
+#include <windows.h>
+#include <GL/glu.h>
+#endif
+
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/glu.h>

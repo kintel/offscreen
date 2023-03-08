@@ -25,7 +25,11 @@ Multi-platform OpenGL offscreen tester.
 * Qt-backed GL context
 * Pure GLES mode, useful on Raspberry Pi
 * Look into "warning gl.h and gl3.h are both included"
-* Windows support
+* Windows support:
+   * https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
+   * Look into wglCreateContextAttribsARB(), wglChoosePixelFormatARB()
+   * https://github.com/bkaradzic/bgfx/blob/master/src/glcontext_wgl.cpp
+   * https://stackoverflow.com/questions/48049470/opengl-offscreen-render
 
 ## Prerequisites
 

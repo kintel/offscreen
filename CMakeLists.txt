@@ -43,6 +43,10 @@ if(APPLE)
       )
 endif(APPLE)
 
+if(WIN32)
+  set(SRCS_WINDOWS src/OffscreenContextWGL.cc)
+endif(WIN32)
+
 if(HAS_EGL)
   set(SRCS_EGL
       src/OffscreenContextEGL.cc
@@ -62,6 +66,7 @@ set(SRCS
     src/render_modern_ogl3.cc
     ${SRCS_EGL}
     ${SRCS_APPLE}
+    ${SRCS_WINDOWS}
     )
 target_sources(offscreen PRIVATE ${SRCS})
 target_include_directories(offscreen PUBLIC "${CMAKE_SOURCE_DIR}/src")

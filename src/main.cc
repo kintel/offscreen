@@ -12,6 +12,9 @@
 #include "OffscreenContextNSOpenGL.h"
 #include "OffscreenContextCGL.h"
 #endif
+#ifdef _WIN32
+#include "OffscreenContextWGL.h"
+#endif
 #ifdef HAS_EGL
 #include "OffscreenContextEGL.h"
 #endif
@@ -63,7 +66,7 @@ int main(int argc, char *argv[])
   args.addArgument({"--height"}, &argHeight, "Framebuffer height");
   args.addArgument({"--opengl"}, &argGLVersion, "OpenGL version");
   args.addArgument({"--gles"}, &argGLESVersion, "OpenGL ES version");
-  args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider");
+  args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider [glfw | egl | cgl | nsopengl | wgl]");
   args.addArgument({"--profile"}, &argProfile, "OpenGL profile [core | compatibility]");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
   args.addArgument({"--mode"}, &argRenderMode, "Rendering mode [auto | immediate | modern]");
@@ -112,6 +115,8 @@ int main(int argc, char *argv[])
     argContextProvider = "cgl";
 #elif defined(HAS_EGL)
     argContextProvider = "egl";
+#elif defined(_WIN32)
+    argContextProvider = "wgl";
 #endif
   }
 
@@ -143,6 +148,13 @@ int main(int argc, char *argv[])
   if (argContextProvider == "egl") {
     ctx = OffscreenContextEGL::create(argWidth, argHeight, requestMajor, requestMinor, requestGLES, argProfile == "compatibility",
     argGPU);
+  }
+  else
+#endif
+#ifdef _WIN32
+  if (argContextProvider == "wgl") {
+    std::cout << "AAA" << std::endl;
+    ctx = OffscreenContextWGL::create(argWidth, argHeight, requestMajor, requestMinor, argProfile == "compatibility");
   }
   else
 #endif
