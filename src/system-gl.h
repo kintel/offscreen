@@ -20,12 +20,20 @@
 #include <GL/glu.h>
 #endif
 
-// FIXME: Disable check in non-debug mode
-#define GL_CHECK(expr)						\
-  expr;								\
-  if (const auto err = glGetError(); err != GL_NO_ERROR) {	\
-    std::cout << "OpenGL error: " << gluErrorString(err)	\
-	      << " (" << err << ") in "				\
-	      << __FILE__ << ":" << __LINE__ << "\n"		\
-	      << "              " << #expr << "\n";		\
+namespace {
+void glCheck(const char *stmt, const char *file, int line)
+{
+  if (GLenum err = glGetError(); err != GL_NO_ERROR) {
+    std::cerr << "OpenGL error: " << gluErrorString(err)
+              << " (" << err << ") in " << file << ":" << line << "\n"
+              << "              " << stmt << std::endl;
   }
+}
+
+} // namespace
+
+#ifdef DEBUG
+  #define GL_CHECK(stmt) stmt; glCheck(#stmt, __FILE__, __LINE__)
+#else
+  #define GL_CHECK(stmt) stmt
+#endif

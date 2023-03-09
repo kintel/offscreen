@@ -5,6 +5,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 project(offscreen)
 
 add_executable(offscreen)
+target_compile_options(offscreen PRIVATE "$<$<CONFIG:DEBUG>:-DDEBUG>")
 
 option(USE_GLAD "Use GLAD for OpenGL function wrangling")
 if(USE_GLAD)
