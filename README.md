@@ -16,7 +16,8 @@ Multi-platform OpenGL offscreen tester.
 * Raspberry Pi
    * Only OpenGL 2 for now
 * Windows
-   * Not implemented
+   * Supports: WGL
+   * OpenGL2-4
 
 ## TODO
 
@@ -25,6 +26,7 @@ Multi-platform OpenGL offscreen tester.
 * Qt-backed GL context
 * macOS: Look into "warning gl.h and gl3.h are both included"
 * Support forward-compatible contexts
+* Windows: Support GLES
 
 ## Prerequisites
 
