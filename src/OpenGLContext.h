@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <vector>
 
 class OpenGLContext {
  protected:
@@ -13,6 +14,5 @@ class OpenGLContext {
   int height() const { return this->height_; }
   virtual bool isOffscreen() const = 0;
   virtual bool makeCurrent() {return false;}
-  bool saveFramebuffer(std::ostream &output);
-  bool saveFramebuffer(const char *filename);
+  std::vector<uint8_t> getFramebuffer() const;
 };

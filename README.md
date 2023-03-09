@@ -21,13 +21,13 @@ Multi-platform OpenGL offscreen tester.
 
 ## TODO
 
-* Decouple stb_image from API
 * Basic GLX support
 * Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
 * Qt-backed GL context
 * macOS: Look into "warning gl.h and gl3.h are both included"
 * Support forward-compatible contexts
 * Windows: Support GLES
+* WASM
 
 ## Prerequisites
 

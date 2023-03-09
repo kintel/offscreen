@@ -25,6 +25,9 @@
 #include "render_modern_ogl2.h"
 #include "render_modern_ogl3.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "ext/stb/stb_image_write.h"
+
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #include <stdlib.h>
@@ -43,6 +46,21 @@ void * MyNSGLGetProcAddress(const char *name)
     return symbol ? NSAddressOfSymbol (symbol) : NULL;
 }
 #endif // __APPLE__
+
+bool saveFramebuffer(const OpenGLContext& ctx, const char *filename)
+{
+  const auto buffer = ctx.getFramebuffer();
+  std::cout << "Buffer size: " << buffer.size() << std::endl;
+  stbi_flip_vertically_on_write(true);
+  int samplesPerPixel = 4; // R, G, B and A
+  if (stbi_write_png(filename, ctx.width(), ctx.height(), samplesPerPixel, buffer.data(), 0) != 1) {
+    std::cerr << "stbi_write_png(\"" << filename << "\") failed" << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -322,7 +340,9 @@ int main(int argc, char *argv[])
   }
 
   glFinish();
-  ctx->saveFramebuffer("out.png");
+  if (!saveFramebuffer(*ctx, "out.png")) {
+    std::cerr << "Unable to write framebuffer" << std::endl;
+  }
 
   if (fbo) {
     fbo->destroy();
