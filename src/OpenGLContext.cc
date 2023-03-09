@@ -8,7 +8,7 @@
 #include "ext/stb/stb_image_write.h"
 
 //bool OpenGLContext::saveFramebuffer(std::ostream &output)
-bool OpenGLContext::saveFramebuffer()
+bool OpenGLContext::saveFramebuffer(const char *filename)
 {
   // Read pixels from OpenGL
   int samplesPerPixel = 4; // R, G, B and A
@@ -21,8 +21,8 @@ bool OpenGLContext::saveFramebuffer()
   GL_CHECK(glReadPixels(0, 0, this->width_, this->height_, GL_RGBA, GL_UNSIGNED_BYTE, bufferData));
 
   stbi_flip_vertically_on_write(true);
-  if (stbi_write_png("out.png", this->width_, this->height_, samplesPerPixel, bufferData, 0) != 1) {
-    std::cerr << "stbi_write_png(\"out.png\") failed" << std::endl;
+  if (stbi_write_png(filename, this->width_, this->height_, samplesPerPixel, bufferData, 0) != 1) {
+    std::cerr << "stbi_write_png(\"" << filename << "\") failed" << std::endl;
     return false;
   }
   free(bufferData);

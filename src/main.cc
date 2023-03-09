@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
   }
 
   glFinish();
-  ctx->saveFramebuffer();
+  ctx->saveFramebuffer("out.png");
 
   if (fbo) {
     fbo->destroy();

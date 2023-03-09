@@ -12,5 +12,5 @@ class OpenGLContext {
   virtual bool isOffscreen() const = 0;
   virtual bool makeCurrent() {return false;}
   //  bool saveFramebuffer(std::ostream &output);
-  bool saveFramebuffer();
+  bool saveFramebuffer(const char *filename);
 };
