@@ -21,6 +21,7 @@ Multi-platform OpenGL offscreen tester.
 
 ## TODO
 
+* Decouple stb_image from API
 * Basic GLX support
 * Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
 * Qt-backed GL context
