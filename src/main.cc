@@ -137,10 +137,10 @@ int main(int argc, char *argv[])
   std::transform(argContextProvider.begin(), argContextProvider.end(), argContextProvider.begin(), ::tolower);
 #ifdef __APPLE__
   if (argContextProvider == "nsopengl") {
-    ctx = OffscreenContextNSOpenGL::create(argWidth, argHeight, major, minor);
+    ctx = OffscreenContextNSOpenGL::create(argWidth, argHeight, requestMajor, requestMinor);
   }
   else if (argContextProvider == "cgl") {
-    ctx = OffscreenContextCGL::create(argWidth, argHeight, major, minor);
+    ctx = OffscreenContextCGL::create(argWidth, argHeight, requestMajor, requestMinor);
   }
   else
 #endif
