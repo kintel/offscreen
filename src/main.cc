@@ -153,7 +153,6 @@ int main(int argc, char *argv[])
 #endif
 #ifdef _WIN32
   if (argContextProvider == "wgl") {
-    std::cout << "AAA" << std::endl;
     ctx = OffscreenContextWGL::create(argWidth, argHeight, requestMajor, requestMinor, argProfile == "compatibility");
   }
   else

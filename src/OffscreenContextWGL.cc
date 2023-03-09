@@ -3,6 +3,12 @@
 #include <iostream>
 
 #include <windows.h>
+#ifdef USE_GLAD
+#define GLAD_WGL
+#define GLAD_WGL_IMPLEMENTATION
+#include <glad/wgl.h>
+#include <glad/gl.h>
+#endif
 
 class OffscreenContextWGLImpl : public OffscreenContextWGL {
 
@@ -73,12 +79,37 @@ std::shared_ptr<OffscreenContextWGL> OffscreenContextWGL::create(size_t width, s
   };
   int pixelFormat = ChoosePixelFormat(ctx->devContext, &pixelFormatDesc);
   SetPixelFormat(ctx->devContext, pixelFormat, &pixelFormatDesc);
+  // FIXME: Use wglChoosePixelFormatARB() if appropriate
 
-  ctx->renderContext = wglCreateContext(ctx->devContext);
-  if (ctx->renderContext == nullptr) {
+  const auto tmpRenderContext = wglCreateContext(ctx->devContext);
+  if (tmpRenderContext == nullptr) {
     std::cerr << "wglCreateContext() failed: " << GetLastError() << std::endl;
     ctx->destroy();
     return nullptr;
   }
+
+  wglMakeCurrent(ctx->devContext, tmpRenderContext);
+  gladLoaderLoadWGL(ctx->devContext);
+
+  int attributes[] = {
+    WGL_CONTEXT_MAJOR_VERSION_ARB, majorGLVersion,
+    WGL_CONTEXT_MINOR_VERSION_ARB, minorGLVersion,
+    WGL_CONTEXT_PROFILE_MASK_ARB,
+    compatibilityProfile ? WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB : WGL_CONTEXT_CORE_PROFILE_BIT_ARB,         
+    0
+  };
+  ctx->renderContext = wglCreateContextAttribsARB(ctx->devContext, nullptr, attributes);
+  if (ctx->renderContext == nullptr) {
+    std::cerr << "wglCreateContextAttribsARB() failed: " << GetLastError() << std::endl;
+    ctx->destroy();
+    return nullptr;
+  }
+  wglMakeCurrent(nullptr, nullptr);
+  if (!wglDeleteContext(tmpRenderContext)) {
+    std::cerr << "wglDeleteContext() failed: " << GetLastError() << std::endl;
+    ctx->destroy();
+    return nullptr;
+  }
+
   return ctx;
 }
