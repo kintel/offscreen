@@ -88,7 +88,9 @@ int main(int argc, char *argv[])
   args.addArgument({"--profile"}, &argProfile, "OpenGL profile [core | compatibility]");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
   args.addArgument({"--mode"}, &argRenderMode, "Rendering mode [auto | immediate | modern]");
+ #ifdef HAS_GBM
   args.addArgument({"--gpu"}, &argGPU, "[EGL] Which GPU to use (e.g. /dev/dri/renderD128)");
+ #endif
   args.addArgument({"-v", "--verbose"}, &argVerbose, "Verbose output.");
   args.addArgument({"-h", "--help"}, &argPrintHelp, "Print this help.");
 

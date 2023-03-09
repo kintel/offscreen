@@ -5,8 +5,9 @@
 #include <sstream>
 #include <set>
 #include <vector>
+#ifdef HAS_GBM
 #include <gbm.h>
-
+#endif
 #include "glad/egl.h"
 #include "GL/gl.h"
 
@@ -173,7 +174,7 @@ void dumpEGLDevicePlatform() {
     std::cout << "Display query extensions not available" << std::endl;
   }
 }
-
+#ifdef HAS_GBM
 void dumpEGLGBMPlatform(const std::string& drmNode) {
   std::cout << "=== GBM Platform ===" << std::endl;
   
@@ -257,7 +258,7 @@ void dumpEGLGBMPlatform(const std::string& drmNode) {
   gbm_surface_destroy(gbmSurface);
   eglTerminate(eglDisplay);
 }
-
+#endif
 } // namespace
 
 class OffscreenContextEGLImpl : public OffscreenContextEGL {
@@ -280,7 +281,8 @@ public:
     return true;
   }
 
-    void getDisplayFromDrmNode(const std::string& drmNode) {
+#ifdef HAS_GBM
+  void getDisplayFromDrmNode(const std::string& drmNode) {
     this->eglDisplay = EGL_NO_DISPLAY;
     const int fd = open(drmNode.c_str(), O_RDWR);
     if (fd < 0) {
@@ -297,6 +299,7 @@ public:
     // FIXME: Check EGL extension before passing the identifier to this function
     this->eglDisplay = eglGetPlatformDisplay(EGL_PLATFORM_GBM_KHR, this->gbmDevice, nullptr);
   }
+#endif
 
   void findPlatformDisplay() {
     std::set<std::string> clientExtensions;
@@ -329,6 +332,7 @@ public:
 
   void createSurface(const EGLConfig& config,size_t width, size_t height) {
     if (this->gbmDevice) {
+#ifdef HAS_GBM
 // FIXME: For some reason, we have to pass 0 as flags for the nvidia GBM backend
       const auto gbmSurface =
         gbm_surface_create(this->gbmDevice, width, height,
@@ -342,8 +346,8 @@ public:
 
       this->eglSurface =
         eglCreatePlatformWindowSurface(this->eglDisplay, config, gbmSurface, nullptr);
-    }
-    else {
+#endif
+    } else {
       const EGLint pbufferAttribs[] = {
         EGL_WIDTH, width,
         EGL_HEIGHT, height,
@@ -358,9 +362,9 @@ public:
 void OffscreenContextEGL::dumpEGLInfo(const std::string& drmNode) {
 
   dumpEGLDevicePlatform();
+#ifdef HAS_GBM
   dumpEGLGBMPlatform(drmNode);
-
-
+#endif
 }
 
 // Typical variants:
@@ -403,8 +407,10 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
   };
 
   if (!drmNode.empty()) {
+#ifdef HAS_GBM
     std::cout << "Using GBM..." << std::endl;
     ctx->getDisplayFromDrmNode(drmNode);
+#endif
   } else {
     // FIXME: Should we try default display first?
     // If so, we also have to try initializing it
@@ -413,7 +419,7 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
       std::cout << "Trying default EGL display..." << std::endl;
       ctx->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     }
-  } 
+  }
 
   if (ctx->eglDisplay == EGL_NO_DISPLAY) {
     std::cerr << "No EGL display found" << std::endl;
