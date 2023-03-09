@@ -2,6 +2,27 @@
 
 Multi-platform OpenGL offscreen tester.
 
+## Build & run
+
+```
+git clone https://github.com/kintel/offscreen.git
+cd offscreen
+git submodule update --init
+```
+
+**Linux, Windows**
+```
+cmake -DUSE_GLAD=1 .
+./offscreen
+```
+
+**macOS**
+```
+cmake .
+./offscreen
+```
+
+
 ## Platforms
 
 * macOS
