@@ -23,14 +23,8 @@ Multi-platform OpenGL offscreen tester.
 * Basic GLX support
 * Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
 * Qt-backed GL context
-* Pure GLES mode, useful on Raspberry Pi
 * macOS: Look into "warning gl.h and gl3.h are both included"
 * Support forward-compatible contexts
-* Windows support:
-   * https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
-   * Look into wglCreateContextAttribsARB(), wglChoosePixelFormatARB()
-   * https://github.com/bkaradzic/bgfx/blob/master/src/glcontext_wgl.cpp
-   * https://stackoverflow.com/questions/48049470/opengl-offscreen-render
 
 ## Prerequisites
 
