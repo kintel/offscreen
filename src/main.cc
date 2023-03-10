@@ -24,6 +24,7 @@
 #include "render_immediate.h"
 #include "render_modern_ogl2.h"
 #include "render_modern_ogl3.h"
+#include "egl_utils.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "ext/stb/stb_image_write.h"
@@ -50,7 +51,6 @@ void * MyNSGLGetProcAddress(const char *name)
 bool saveFramebuffer(const OpenGLContext& ctx, const char *filename)
 {
   const auto buffer = ctx.getFramebuffer();
-  std::cout << "Buffer size: " << buffer.size() << std::endl;
   stbi_flip_vertically_on_write(true);
   int samplesPerPixel = 4; // R, G, B and A
   if (stbi_write_png(filename, ctx.width(), ctx.height(), samplesPerPixel, buffer.data(), 0) != 1) {
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 
 #if HAS_EGL
   if (argVerbose && argContextProvider == "egl") {
-    OffscreenContextEGL::dumpEGLInfo(argGPU);
+    dumpEGLInfo(argGPU);
   }
 #endif
 

@@ -54,6 +54,7 @@ endif(WIN32)
 if(HAS_EGL)
   set(SRCS_EGL
       src/OffscreenContextEGL.cc
+      src/egl_utils.cc
       )
   add_compile_definitions(HAS_EGL)
 endif()
