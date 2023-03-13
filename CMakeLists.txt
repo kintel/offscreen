@@ -7,7 +7,15 @@ project(offscreen)
 add_executable(offscreen)
 target_compile_options(offscreen PRIVATE "$<$<CONFIG:DEBUG>:-DDEBUG>")
 
-option(USE_GLAD "Use GLAD for OpenGL function wrangling")
+if(APPLE)
+  set(USE_GLAD_DEFAULT OFF)
+else()
+  set(USE_GLAD_DEFAULT ON)
+endif()
+
+
+option(USE_GLAD "Use GLAD for OpenGL function wrangling" ${USE_GLAD_DEFAULT})
+
 if(USE_GLAD)
   target_compile_definitions(offscreen PRIVATE USE_GLAD)
 endif()
