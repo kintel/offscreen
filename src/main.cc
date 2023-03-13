@@ -195,10 +195,6 @@ int main(int argc, char *argv[])
   int version;
   if (argContextProvider == "glfw") {
     version = requestGLES ? gladLoadGLES2(glfwGetProcAddress) : gladLoadGL(glfwGetProcAddress);
-//  } else if (argContextProvider == "egl") {
-//  std::cout << "CCC: " << eglGetProcAddress << std::endl;
-//    version = requestGLES ? gladLoadGLES2(eglGetProcAddress) : gladLoadGL(eglGetProcAddress);
-//  std::cout << "DDD" << std::endl;
   } else {
     version = requestGLES ? gladLoaderLoadGLES2() : gladLoaderLoadGL();
   }

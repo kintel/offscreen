@@ -29,8 +29,6 @@ void dumpEGLDisplay(EGLDisplay eglDisplay) {
     EGL_NONE,
   };
 
-  auto eglGetDisplayDriverName = (PFNEGLGETDISPLAYDRIVERNAMEPROC) eglGetProcAddress("eglGetDisplayDriverName");
-
   EGLint major, minor;
   if (!eglInitialize(eglDisplay, &major, &minor)) {
     std::cerr << "    Unable to initialize EGL" << std::endl;
@@ -129,9 +127,6 @@ void dumpEGLDisplay(EGLDisplay eglDisplay) {
 
 void dumpEGLDevicePlatform() {
   std::cout << "=== Device Platform ===" << std::endl;
-  auto eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) eglGetProcAddress("eglQueryDevicesEXT");
-  auto eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress("eglGetPlatformDisplayEXT");
-
   if (eglQueryDevicesEXT && eglGetPlatformDisplayEXT) {
     const int MAX_DEVICES = 10;
     EGLDeviceEXT eglDevices[MAX_DEVICES];

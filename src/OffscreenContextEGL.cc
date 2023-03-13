@@ -96,8 +96,6 @@ public:
     }
 
     std::cout << "Trying Platform display..." << std::endl;
-    auto eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC) eglGetProcAddress("eglQueryDevicesEXT");
-    auto eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress("eglGetPlatformDisplayEXT");
     if (eglQueryDevicesEXT && eglGetPlatformDisplayEXT) {
       EGLDeviceEXT eglDevice;
       EGLint numDevices = 0;
@@ -211,7 +209,6 @@ std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, s
   }
   std::cout << "Loaded EGL " << GLAD_VERSION_MAJOR(eglVersion) << "." << GLAD_VERSION_MINOR(eglVersion) << " after reload" << std::endl;
 
-  auto eglGetDisplayDriverName = (PFNEGLGETDISPLAYDRIVERNAMEPROC) eglGetProcAddress("eglGetDisplayDriverName");
   if (eglGetDisplayDriverName) {
     const char *name = eglGetDisplayDriverName(ctx->eglDisplay);
     if (name) {
