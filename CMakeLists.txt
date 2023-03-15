@@ -13,8 +13,8 @@ else()
   set(USE_GLAD_DEFAULT ON)
 endif()
 
-
 option(USE_GLAD "Use GLAD for OpenGL function wrangling" ${USE_GLAD_DEFAULT})
+option(ENABLE_GLFW "Enable on-screen rendering using glfw" ON)
 
 if(USE_GLAD)
   target_compile_definitions(offscreen PRIVATE USE_GLAD)
@@ -40,8 +40,11 @@ else()
 endif()
 target_link_libraries(offscreen OpenGL::GLU)
 
-find_package(glfw3 REQUIRED)
-target_link_libraries(offscreen glfw)
+if(ENABLE_GLFW)
+  find_package(glfw3 REQUIRED)
+  target_link_libraries(offscreen glfw)
+  target_compile_definitions(offscreen PRIVATE ENABLE_GLFW)
+endif()
 
 # Needed for Raspberry pi:
 target_link_libraries(offscreen dl)
@@ -67,16 +70,20 @@ if(HAS_EGL)
   add_compile_definitions(HAS_EGL)
 endif()
 
+if(ENABLE_GLFW)
+  set(SRCS_GLFW src/GLFWContext.cc)
+endif()
+
 set(SRCS
     src/main.cc
     src/CommandLine.cc
     src/OpenGLContext.cc
     src/OffscreenContext.cc
-    src/GLFWContext.cc
     src/FBO.cc
     src/render_immediate.cc
     src/render_modern_ogl2.cc
     src/render_modern_ogl3.cc
+    ${SRCS_GLFW}
     ${SRCS_EGL}
     ${SRCS_APPLE}
     ${SRCS_WINDOWS}
@@ -92,3 +99,4 @@ message(STATUS "Build Configuration Summary")
 message(STATUS "====================================")
 message(STATUS " ")
 message(STATUS "Using GLAD:          ${USE_GLAD}")
+message(STATUS "GLFW:                ${ENABLE_GLFW}")

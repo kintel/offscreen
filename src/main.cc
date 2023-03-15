@@ -1,5 +1,9 @@
+#include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <locale>
+#include <sstream>
+#include <iterator>
 
 #ifdef USE_GLAD
 #define GLAD_GL_IMPLEMENTATION
@@ -18,7 +22,9 @@
 #ifdef HAS_EGL
 #include "OffscreenContextEGL.h"
 #endif
+#ifdef ENABLE_GLFW
 #include "GLFWContext.h"
+#endif
 #include "FBO.h"
 #include "state.h"
 #include "render_immediate.h"
@@ -78,13 +84,21 @@ int main(int argc, char *argv[])
   bool argVerbose = false;
   bool argPrintHelp = false;
 
+  std::vector<std::string> contextProviders = {"egl", "cgl", "nsopengl", "wgl"};
+#ifdef ENABLE_GLFW
+  contextProviders.push_back("glfw");
+#endif
+
+  std::string joinedProviders = std::accumulate(contextProviders.begin(), contextProviders.end(), std::string(), 
+    [](const auto &x, const auto &y) { return x.empty() ? y : x + " | " + y; });
+    
   // First configure all possible command line options.
   CommandLine args("OpenGL context tester.");
   args.addArgument({"--width"}, &argWidth, "Framebuffer width");
   args.addArgument({"--height"}, &argHeight, "Framebuffer height");
   args.addArgument({"--opengl"}, &argGLVersion, "OpenGL version");
   args.addArgument({"--gles"}, &argGLESVersion, "OpenGL ES version");
-  args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider [glfw | egl | cgl | nsopengl | wgl]");
+  args.addArgument({"--context"}, &argContextProvider, "OpenGL context provider [" + joinedProviders + "]");
   args.addArgument({"--profile"}, &argProfile, "OpenGL profile [core | compatibility]");
   args.addArgument({"--invisible"}, &argInvisible, "Make window invisible");
   args.addArgument({"--mode"}, &argRenderMode, "Rendering mode [auto | immediate | modern]");
@@ -177,10 +191,13 @@ int main(int argc, char *argv[])
   }
   else
 #endif
+#ifdef ENABLE_GLFW
   if (argContextProvider == "glfw") {
     ctx = GLFWContext::create(argWidth, argHeight, requestMajor, requestMinor, argInvisible);
   }
-  else {
+  else
+#endif
+  {
     std::cerr << "Unknown OpenGL context provider \"" << argContextProvider << "\"" << std::endl;
     return 1;
   }
@@ -193,9 +210,12 @@ int main(int argc, char *argv[])
 
 #ifdef USE_GLAD
   int version;
+#ifdef ENABLE_GLFW
   if (argContextProvider == "glfw") {
     version = requestGLES ? gladLoadGLES2(glfwGetProcAddress) : gladLoadGL(glfwGetProcAddress);
-  } else {
+  } else
+#endif
+  {
     version = requestGLES ? gladLoaderLoadGLES2() : gladLoaderLoadGL();
   }
   if (version == 0) {
@@ -330,10 +350,13 @@ int main(int argc, char *argv[])
   }
 
   GL_CHECK(setup());
+#ifdef ENABLE_GLFW
   if (const auto glfwContext = std::dynamic_pointer_cast<GLFWContext>(ctx)) {
     glfwContext->loop(render);
   }
-  else {
+  else
+#endif
+  {
     GL_CHECK(render());
   }
 
