@@ -38,6 +38,10 @@ if (OpenGL_EGL_FOUND)
 else()
   target_link_libraries(offscreen OpenGL::GL)
 endif()
+if(OpenGL_GLX_FOUND)
+  set(HAS_GLX TRUE)
+  target_link_libraries(offscreen OpenGL::GLX)
+endif()
 target_link_libraries(offscreen OpenGL::GLU)
 
 if(ENABLE_GLFW)
@@ -50,6 +54,8 @@ endif()
 target_link_libraries(offscreen dl)
 
 if(APPLE)
+  set(HAS_NSOPENGL TRUE)
+  set(HAS_CGL TRUE)
   find_library(COCOA Cocoa)
   target_link_libraries(offscreen ${COCOA})
   set(SRCS_APPLE
@@ -59,6 +65,7 @@ if(APPLE)
 endif(APPLE)
 
 if(WIN32)
+  set(HAS_WGL TRUE)
   set(SRCS_WINDOWS src/OffscreenContextWGL.cc)
 endif(WIN32)
 
@@ -68,6 +75,13 @@ if(HAS_EGL)
       src/egl_utils.cc
       )
   add_compile_definitions(HAS_EGL)
+endif()
+
+if(HAS_GLX)
+  set(SRCS_GLX
+      src/OffscreenContextGLX.cc
+      )
+  add_compile_definitions(HAS_GLX)
 endif()
 
 if(ENABLE_GLFW)
@@ -85,6 +99,7 @@ set(SRCS
     src/render_modern_ogl3.cc
     ${SRCS_GLFW}
     ${SRCS_EGL}
+    ${SRCS_GLX}
     ${SRCS_APPLE}
     ${SRCS_WINDOWS}
     )
@@ -100,3 +115,8 @@ message(STATUS "====================================")
 message(STATUS " ")
 message(STATUS "Using GLAD:          ${USE_GLAD}")
 message(STATUS "GLFW:                ${ENABLE_GLFW}")
+message(STATUS "GLX:                 ${HAS_GLX}")
+message(STATUS "EGL:                 ${HAS_EGL}")
+message(STATUS "CGL:                 ${HAS_CGL}")
+message(STATUS "NSOpenGL:            ${HAS_NSOPENGL}")
+message(STATUS "WGL:                 ${HAS_WGL}")
