@@ -22,6 +22,9 @@
 #ifdef HAS_EGL
 #include "OffscreenContextEGL.h"
 #endif
+#ifdef ENABLE_GLX
+#include "OffscreenContextGLX.h"
+#endif
 #ifdef ENABLE_GLFW
 #include "GLFWContext.h"
 #endif
@@ -85,6 +88,9 @@ int main(int argc, char *argv[])
   bool argPrintHelp = false;
 
   std::vector<std::string> contextProviders = {"egl", "cgl", "nsopengl", "wgl"};
+#ifdef ENABLE_GLX
+  contextProviders.push_back("glx");
+#endif
 #ifdef ENABLE_GLFW
   contextProviders.push_back("glfw");
 #endif
@@ -182,6 +188,12 @@ int main(int argc, char *argv[])
   if (argContextProvider == "egl") {
     ctx = OffscreenContextEGL::create(argWidth, argHeight, requestMajor, requestMinor, requestGLES, argProfile == "compatibility",
     argGPU);
+  }
+  else
+#endif
+#ifdef ENABLE_GLX
+  if (argContextProvider == "glx") {
+    ctx = OffscreenContextGLX::create(argWidth, argHeight, requestMajor, requestMinor, requestGLES, argProfile == "compatibility");
   }
   else
 #endif
