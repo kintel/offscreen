@@ -10,16 +10,10 @@ cd offscreen
 git submodule update --init
 ```
 
-**Linux, Windows**
-```
-cmake -DUSE_GLAD=1 .
-./offscreen
-```
-
-**macOS**
 ```
 cmake .
-./offscreen
+make
+./offscreen -h
 ```
 
 
@@ -111,6 +105,13 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 ```bash
 ./offscreen --context egl --gpu /dev/dri/renderD129
 ```
+
+### GLES
+
+```bash
+./offscreen --gles 2
+```
+
 
 ## Context Notes
 
