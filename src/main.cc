@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
   }
 
   if (argRenderMode == "auto") {
-    if (glMajor == 2) {
+    if (glMajor == 2 && !requestGLES) {
       argRenderMode = "immediate";
     }
     else {
