@@ -40,6 +40,13 @@ bool check_fbo_status()
 FBO *createFBO(size_t width, size_t height) {
   FBO *fbo = new FBO();
 
+  if (!glGenFramebuffers) std::cerr << "glGenFramebuffers() not found" << std::endl;
+  if (!glBindFramebuffer) std::cerr << "glBindFramebuffer() not found" << std::endl;
+  if (!glGenRenderbuffers) std::cerr << "glGenRenderbuffers() not found" << std::endl;
+  if (!glFramebufferRenderbuffer) std::cerr << "glFramebufferRenderbuffer() not found" << std::endl;
+  if (!glBindRenderbuffer) std::cerr << "glBindRenderbuffer() not found" << std::endl;
+  if (!glRenderbufferStorage) std::cerr << "glRenderbufferStorage() not found" << std::endl;
+
   // Generate and bind FBO
   GL_CHECK(glGenFramebuffers(1, &fbo->fbo_id));
   GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, fbo->fbo_id));

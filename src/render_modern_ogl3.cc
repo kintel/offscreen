@@ -144,12 +144,13 @@ void setupColorWheel(MyState &state, const std::string &glslVersion) {
   const char *vertexShaderSource;
   if (glslVersion == "330") {
     vertexShaderSource = perVertexColor_vert_330;
-  }
-  else if (glslVersion == "140") {
+  } else if (glslVersion == "140") {
     vertexShaderSource = perVertexColor_vert_140;
-  }
-  else { // FIXME: Check specifically for GLSL ES shaders
+  } else if (glslVersion == "300 es") {
     vertexShaderSource = perVertexColor_vert_300_es;
+  } else {
+    std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
+    return;
   }
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -166,8 +167,11 @@ void setupColorWheel(MyState &state, const std::string &glslVersion) {
     fragmentShaderSource = default_frag_330;
   } else if (glslVersion == "140") {
     fragmentShaderSource = default_frag_140;
-  } else { // FIXME: Check specifically for GLSL ES shaders
+  } else if (glslVersion == "300 es") {
     fragmentShaderSource = default_frag_300_es;
+  } else {
+    std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
+    return;
   }
 
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -227,8 +231,11 @@ void setupCenter(MyState &state, const std::string &glslVersion) {
     vertexShaderSource = default_vert_330;
   } else if (glslVersion == "140") {
     vertexShaderSource = default_vert_140;
-  } else { // FIXME: Check specifically for GLSL ES shaders
+  } else if (glslVersion == "300 es") {
     vertexShaderSource = default_vert_300_es;
+  } else {
+    std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
+    return;
   }
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -246,8 +253,11 @@ void setupCenter(MyState &state, const std::string &glslVersion) {
     fragmentShaderSource = default_frag_330;
   } else if (glslVersion == "140") {
     fragmentShaderSource = default_frag_140;
-  } else { // FIXME: Check specifically for GLSL ES shaders
+  } else if (glslVersion == "300 es") {
     fragmentShaderSource = default_frag_300_es;
+  } else {
+    std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
+    return;
   }
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
@@ -300,6 +310,7 @@ void setupCenter(MyState &state, const std::string &glslVersion) {
 } // namespace
 
 void setupModernOGL3(std::vector<MyState> &states, const std::string &glslVersion) {
+  std::cout << "Rendering using modern OpenGL 3+" << std::endl;
   std::cout << "Using GLSL " << glslVersion << std::endl;
   states.emplace_back();
   setupColorWheel(states.back(), glslVersion);

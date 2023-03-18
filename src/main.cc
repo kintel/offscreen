@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
   bool argInvisible = false;
   std::string argRenderMode = "auto";
   std::string argGPU = "";
+  bool argDumpEGL = false;
   bool argVerbose = false;
   bool argPrintHelp = false;
 
@@ -111,6 +112,7 @@ int main(int argc, char *argv[])
  #ifdef HAS_GBM
   args.addArgument({"--gpu"}, &argGPU, "[EGL] Which GPU to use (e.g. /dev/dri/renderD128)");
  #endif
+  args.addArgument({"--dump-egl"}, &argDumpEGL, "Dump verbose EGL info.");
   args.addArgument({"-v", "--verbose"}, &argVerbose, "Verbose output.");
   args.addArgument({"-h", "--help"}, &argPrintHelp, "Print this help.");
 
@@ -161,12 +163,12 @@ int main(int argc, char *argv[])
   }
 
 #if HAS_EGL
-  if (argVerbose && argContextProvider == "egl") {
+  if (argDumpEGL && argContextProvider == "egl") {
     dumpEGLInfo(argGPU);
+    std::cout << "================\n";
   }
 #endif
 
-  std::cout << "================:\n";
   std::cout << "Requesting context and framebuffer:\n";
   std::cout << "  Context provider: " << argContextProvider << "\n";
   std::cout << "  " << (requestGLES ? "GLES" : "OpenGL") << ": " << requestMajor << "." << requestMinor << "\n";
@@ -234,8 +236,8 @@ int main(int argc, char *argv[])
     std::cout << "GLAD: Failed to initialize " << (requestGLES ? "GLES" : "OpenGL") << " context" << std::endl;
     return 1;
   }
-  printf("GLAD: Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
-  printf("GLAD glFramebufferTexture: %p\n", glFramebufferTexture);
+   std::cout << "GLAD: Loaded " << (requestGLES ? "GLES" : "OpenGL") << " "
+             << GLAD_VERSION_MAJOR(version) <<"." << GLAD_VERSION_MINOR(version) << std::endl;
 #endif
 
   if (argVerbose) {
@@ -314,20 +316,23 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
   }
 
+  std::cout << "Creating FBO..." << std::endl;
   FBO *fbo = nullptr;
   if (ctx->isOffscreen()) {
     fbo = createFBO(ctx->width(), ctx->height());
   }
+  std::cout << "FBO: " << (fbo ? "OK" : "Failed") << std::endl;
 
-  glViewport(0, 0, ctx->width(), ctx->height());
-
+  GL_CHECK(glViewport(0, 0, ctx->width(), ctx->height()));
 
   std::vector<MyState> states;
 
   std::function<void()> setup;
   std::function<void()> render;
   if (argRenderMode == "immediate") {
-    setup = [](){};
+    setup = [](){
+        std::cout << "Rendering using legacy (immediate mode) OpenGL" << std::endl;
+    };
     render = renderImmediate;
   } else {
     std::string glslVersion = "120";
@@ -345,19 +350,11 @@ int main(int argc, char *argv[])
       }
     }
     if (requestGLES || glMajor >= 3) {
-      setup = [&states, &glslVersion]() {
-	setupModernOGL3(states, glslVersion);
-      };
-    render = [&states]() {
-      renderModernOGL3(states);
-    };
+      setup = [&states, &glslVersion]() { setupModernOGL3(states, glslVersion); };
+      render = [&states]() { renderModernOGL3(states); };
     } else {
-      setup = [&states, &glslVersion]() {
-	setupModernOGL2(states, glslVersion);
-      };
-      render = [&states]() {
-	renderModernOGL2(states);
-      };
+      setup = [&states, &glslVersion]() { setupModernOGL2(states, glslVersion); };
+      render = [&states]() { renderModernOGL2(states); };
     }
   }
 

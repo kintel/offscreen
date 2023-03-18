@@ -204,6 +204,7 @@ void setupCenter(MyState &state) {
 } // namespace
 
 void setupModernOGL2(std::vector<MyState> &states, const std::string &glslVersion) {
+  std::cout << "Rendering using modern OpenGL 2" << std::endl;
   std::cout << "Using GLSL " << glslVersion << std::endl;
   states.emplace_back();
   setupColorWheel(states.back());
