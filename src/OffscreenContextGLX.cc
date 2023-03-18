@@ -36,16 +36,12 @@ public:
     return true;
   }
 
-  /*
-   create a dummy X window without showing it. (without 'mapping' it)
-   and save information to the ctx.
+  // Create an OpenGL context, and a dummy X11 window to draw into, without showing (mapping) it.
+  // This purposely does not use glxCreateWindow, to avoid crashes,
+  // "failed to create drawable" errors, and Mesa "WARNING: Application calling
+  // GLX 1.3 function when GLX 1.3 is not supported! This is an application bug!"
 
-   This purposely does not use glxCreateWindow, to avoid crashes,
-   "failed to create drawable" errors, and Mesa "WARNING: Application calling
-   GLX 1.3 function when GLX 1.3 is not supported! This is an application bug!"
-
-   This function will alter ctx.openGLContext and ctx.xwindow if successful
- */
+  //  This function will alter ctx.openGLContext and ctx.xwindow if successful
   bool createGLXContext(size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile) {
     const int attributes[] = {
       GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PIXMAP_BIT | GLX_PBUFFER_BIT, //support all 3, for OpenCSG
@@ -67,7 +63,7 @@ public:
       if (fbconfigs) XFree(fbconfigs);
       if (visinfo)XFree(visinfo);
     });
-    fbconfigs = glXChooseFBConfig(this->display, DefaultScreen(this->display), attributes, &numConfigs);
+      fbconfigs = glXChooseFBConfig(this->display, DefaultScreen(this->display), attributes, &numConfigs);
     if (fbconfigs == nullptr) {
       std::cerr << "glXChooseFBConfig() failed" << std::endl;
       return false;
@@ -110,12 +106,19 @@ public:
       None
     };
 
-    this->glxContext = glXCreateContextAttribsARB(this->display, fbconfigs[0], nullptr, 1, context_attributes);
-    if (!this->glxContext) {
-      std::cerr << "Unable to create OpenGL GLX context" << std::endl;
-      return false;
+    if (glXCreateContextAttribsARB) {
+      this->glxContext = glXCreateContextAttribsARB(this->display, fbconfigs[0], nullptr, 1, context_attributes);
+      if (!this->glxContext) {
+        std::cerr << "Unable to create GLX context using glXCreateContextAttribsARB()" << std::endl;
+      }
     }
-
+    if (!this->glxContext) {
+      this->glxContext = glXCreateNewContext(this->display, fbconfigs[0], GLX_RGBA_TYPE, nullptr, 1);
+      if (!this->glxContext) {
+        std::cerr << "Unable to create GLX context using glXCreateNewContext()" << std::endl;
+        return false;
+      }
+    }
     return true;
   }
 };
