@@ -238,7 +238,30 @@ int main(int argc, char *argv[])
   }
   std::cout << "GLAD: Loaded " << (requestGLES ? "GLES" : "OpenGL") << " "
             << GLAD_VERSION_MAJOR(version) <<"." << GLAD_VERSION_MINOR(version) << std::endl;
-#else
+#endif
+
+
+  std::string glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+  if (requestGLES) {
+    // FIXME: What about "OpenGL ES-CM 1.1 Mesa 22.2.5" ?
+    if (glVersion.rfind("OpenGL ES ", 0) != 0) {
+      std::cerr << "Unexpected GL_VERSION '" << glVersion << "' for OpenGL ES" << std::endl;
+      return 1;
+    }
+    glVersion = glVersion.substr(10);
+  }
+
+  std::cout << "glVersion: " << glVersion << std::endl;
+  int glMajor, glMinor;
+  int numGlVersionElements = sscanf(glVersion.c_str(), "%d.%d", &glMajor, &glMinor);
+  if (numGlVersionElements != 2) {
+    std::cerr << "Unable to parse OpenGL version \"" << glVersion << "\"" << std::endl;
+    return 1;
+  }
+
+  ctx->setVersion(glMajor, glMinor, requestGLES);
+
+#ifndef USE_GLAD
   initGLExtensions(requestMajor, requestMinor, requestGLES);
 #endif
 
@@ -264,24 +287,6 @@ int main(int argc, char *argv[])
   printf("OpenGL glFramebufferTexture: %p\n", glFramebufferTexture);
   GL_CHECK();
 #endif
-
-  std::string glVersion = reinterpret_cast<const char *>(glGetString(GL_VERSION));
-  if (!argGLESVersion.empty()) {
-    // FIXME: What about "OpenGL ES-CM 1.1 Mesa 22.2.5" ?
-    if (glVersion.rfind("OpenGL ES ", 0) != 0) {
-      std::cerr << "Unexpected GL_VERSION '" << glVersion << "' for OpenGL ES" << std::endl;
-      return 1;
-    }
-    glVersion = glVersion.substr(10);
-  }
-
-  std::cout << "glVersion: " << glVersion << std::endl;
-  int glMajor, glMinor;
-  int numGlVersionElements = sscanf(glVersion.c_str(), "%d.%d", &glMajor, &glMinor);
-  if (numGlVersionElements != 2) {
-    std::cerr << "Unable to parse OpenGL version \"" << glVersion << "\"" << std::endl;
-    return 1;
-  }
 
   if (argRenderMode == "auto") {
     if (glMajor == 2 && !requestGLES) {
@@ -318,13 +323,13 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
   }
 
-  std::cout << "Has FBO: " << ((requestMajor > 3 || requestGLES || hasGLExtension(GL_ARB_framebuffer_object) || hasGLExtension(GL_EXT_framebuffer_object)) ? "Yes" : "No") << std::endl;
-  std::cout << "Creating FBO..." << std::endl;
-  FBO *fbo = nullptr;
+  std::unique_ptr<FBO> fbo;
   if (ctx->isOffscreen()) {
-    fbo = createFBO(ctx->width(), ctx->height());
+    std::cout << "Creating FBO..." << std::endl;
+    fbo = createFBO(*ctx);
+    std::cout << "FBO: " << (fbo ? "OK" : "Failed") << std::endl;
+    if (!fbo) return 1;
   }
-  std::cout << "FBO: " << (fbo ? "OK" : "Failed") << std::endl;
 
   GL_CHECK(glViewport(0, 0, ctx->width(), ctx->height()));
 
@@ -377,10 +382,6 @@ int main(int argc, char *argv[])
     std::cerr << "Unable to write framebuffer" << std::endl;
   }
 
-  if (fbo) {
-    fbo->destroy();
-    delete fbo;
-  }
   //ctx->destroy();
 
   //  glfwTerminate();
