@@ -236,8 +236,10 @@ int main(int argc, char *argv[])
     std::cout << "GLAD: Failed to initialize " << (requestGLES ? "GLES" : "OpenGL") << " context" << std::endl;
     return 1;
   }
-   std::cout << "GLAD: Loaded " << (requestGLES ? "GLES" : "OpenGL") << " "
-             << GLAD_VERSION_MAJOR(version) <<"." << GLAD_VERSION_MINOR(version) << std::endl;
+  std::cout << "GLAD: Loaded " << (requestGLES ? "GLES" : "OpenGL") << " "
+            << GLAD_VERSION_MAJOR(version) <<"." << GLAD_VERSION_MINOR(version) << std::endl;
+#else
+  initGLExtensions(requestMajor, requestMinor, requestGLES);
 #endif
 
   if (argVerbose) {
@@ -316,6 +318,7 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
   }
 
+  std::cout << "Has FBO: " << ((requestMajor > 3 || requestGLES || hasGLExtension(GL_ARB_framebuffer_object) || hasGLExtension(GL_EXT_framebuffer_object)) ? "Yes" : "No") << std::endl;
   std::cout << "Creating FBO..." << std::endl;
   FBO *fbo = nullptr;
   if (ctx->isOffscreen()) {

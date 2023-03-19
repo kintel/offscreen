@@ -37,16 +37,31 @@ bool check_fbo_status()
   return result;
 }
 
-FBO *createFBO(size_t width, size_t height) {
-  FBO *fbo = new FBO();
+// bool hasFBO() {
+//   if (GLES2 or 3+) {
+//     return true;
+//   }
+//   return hasGLExtension("GL_ARB_framebuffer_object") || hasGLExtension("GL_EXT_framebuffer_object");
+// }
 
+FBO *createFBO(size_t width, size_t height) {
+
+// FIXME: Check if FBO is supported:
+// * built-in or ARB
+// * EXT
+
+
+
+
+  FBO *fbo = new FBO();
+#ifdef DEBUG
   if (!glGenFramebuffers) std::cerr << "glGenFramebuffers() not found" << std::endl;
   if (!glBindFramebuffer) std::cerr << "glBindFramebuffer() not found" << std::endl;
   if (!glGenRenderbuffers) std::cerr << "glGenRenderbuffers() not found" << std::endl;
   if (!glFramebufferRenderbuffer) std::cerr << "glFramebufferRenderbuffer() not found" << std::endl;
   if (!glBindRenderbuffer) std::cerr << "glBindRenderbuffer() not found" << std::endl;
   if (!glRenderbufferStorage) std::cerr << "glRenderbufferStorage() not found" << std::endl;
-
+#endif
   // Generate and bind FBO
   GL_CHECK(glGenFramebuffers(1, &fbo->fbo_id));
   GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, fbo->fbo_id));

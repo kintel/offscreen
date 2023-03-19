@@ -113,6 +113,7 @@ endif()
 set(SRCS
     src/main.cc
     src/CommandLine.cc
+    src/system-gl.cc
     src/OpenGLContext.cc
     src/OffscreenContext.cc
     src/FBO.cc

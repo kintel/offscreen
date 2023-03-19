@@ -21,6 +21,7 @@
 #endif
 
 namespace {
+
 void glCheck(const char *stmt, const char *file, int line)
 {
   if (GLenum err = glGetError(); err != GL_NO_ERROR) {
@@ -31,6 +32,14 @@ void glCheck(const char *stmt, const char *file, int line)
 }
 
 } // namespace
+
+#ifdef USE_GLAD
+#define hasGLExtension(ext) GLAD_##ext
+#else
+void initGLExtensions(int major, int minor, bool gles);
+bool lookupGLExtension(const char *ext);
+#define hasGLExtension(ext) lookupGLExtension(#ext)
+#endif
 
 #ifdef DEBUG
   #define GL_CHECK(stmt) stmt; glCheck(#stmt, __FILE__, __LINE__)
