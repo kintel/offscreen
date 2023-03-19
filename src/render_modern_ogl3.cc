@@ -66,6 +66,31 @@ const char *perVertexColor_vert_300_es = R"(#version 300 es
     }
   )";
 
+const char *perVertexColor_vert_140 = R"(#version 140
+    in vec3 aPos;
+    in vec3 aColor;
+
+    out vec3 ourColor;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      ourColor = aColor;
+    }
+  )";
+
+
+const char *perVertexColor_vert_100_es = R"(#version 100
+    attribute vec3 aPos;
+    attribute vec3 aColor;
+
+    varying vec3 ourColor;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      ourColor = aColor;
+    }
+  )";
+
 const char *default_vert_330 = R"(#version 330 core
     layout (location = 0) in vec3 aPos;
 
@@ -81,6 +106,30 @@ const char *default_vert_300_es = R"(#version 300 es
     layout (location = 0) in vec3 aPos;
 
     out vec3 ourColor;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      ourColor = vec3(1,1,1);
+    }
+  )";
+
+
+const char *default_vert_140 = R"(#version 140
+    in vec3 aPos;
+
+    out vec3 ourColor;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      ourColor = vec3(1,1,1);
+    }
+  )";
+
+
+const char *default_vert_100_es = R"(#version 100
+    attribute vec3 aPos;
+
+    varying vec3 ourColor;
 
     void main() {
       gl_Position = vec4(aPos, 1.0);
@@ -107,36 +156,22 @@ const char *default_frag_300_es = R"(#version 300 es
     }
   )";
 
-
-const char *perVertexColor_vert_140 = R"(#version 140
-    in vec3 aPos;
-    in vec3 aColor;
-
-    out vec3 ourColor;
-
-    void main() {
-      gl_Position = vec4(aPos, 1.0);
-      ourColor = aColor;
-    }
-  )";
-
-const char *default_vert_140 = R"(#version 140
-    in vec3 aPos;
-
-    out vec3 ourColor;
-
-    void main() {
-      gl_Position = vec4(aPos, 1.0);
-      ourColor = vec3(1,1,1);
-    }
-  )";
-
 const char *default_frag_140 = R"(#version 140
     out vec4 FragColor;
     in vec3 ourColor;
 
     void main() {
       FragColor = vec4(ourColor, 1.0);
+    }
+  )";
+
+
+const char *default_frag_100_es = R"(#version 100
+   precision mediump float;
+    varying vec3 ourColor;
+
+    void main() {
+      gl_FragColor = vec4(ourColor, 1.0);
     }
   )";
 
@@ -148,6 +183,8 @@ void setupColorWheel(MyState &state, const std::string &glslVersion) {
     vertexShaderSource = perVertexColor_vert_140;
   } else if (glslVersion == "300 es") {
     vertexShaderSource = perVertexColor_vert_300_es;
+  } else if (glslVersion == "100 es") {
+    vertexShaderSource = perVertexColor_vert_100_es;
   } else {
     std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
     return;
@@ -169,6 +206,8 @@ void setupColorWheel(MyState &state, const std::string &glslVersion) {
     fragmentShaderSource = default_frag_140;
   } else if (glslVersion == "300 es") {
     fragmentShaderSource = default_frag_300_es;
+  } else if (glslVersion == "100 es") {
+    fragmentShaderSource = default_frag_100_es;
   } else {
     std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
     return;
@@ -233,6 +272,8 @@ void setupCenter(MyState &state, const std::string &glslVersion) {
     vertexShaderSource = default_vert_140;
   } else if (glslVersion == "300 es") {
     vertexShaderSource = default_vert_300_es;
+  } else if (glslVersion == "100 es") {
+    vertexShaderSource = default_vert_100_es;
   } else {
     std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
     return;
@@ -255,6 +296,8 @@ void setupCenter(MyState &state, const std::string &glslVersion) {
     fragmentShaderSource = default_frag_140;
   } else if (glslVersion == "300 es") {
     fragmentShaderSource = default_frag_300_es;
+  } else if (glslVersion == "100 es") {
+    fragmentShaderSource = default_frag_100_es;
   } else {
     std::cerr << "GLSL " << glslVersion << " shaders not implemented" << std::endl;
     return;
