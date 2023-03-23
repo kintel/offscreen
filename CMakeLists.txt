@@ -116,6 +116,7 @@ set(SRCS
     src/system-gl.cc
     src/OpenGLContext.cc
     src/OffscreenContext.cc
+    src/OffscreenContextFactory.cc
     src/FBO.cc
     src/render_immediate.cc
     src/render_modern_ogl2.cc

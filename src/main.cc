@@ -11,23 +11,13 @@
 #endif
 #include "system-gl.h"
 
-#include "CommandLine.h"
-#ifdef __APPLE__
-#include "OffscreenContextNSOpenGL.h"
-#include "OffscreenContextCGL.h"
-#endif
-#ifdef _WIN32
-#include "OffscreenContextWGL.h"
-#endif
-#ifdef HAS_EGL
-#include "OffscreenContextEGL.h"
-#endif
-#ifdef ENABLE_GLX
-#include "OffscreenContextGLX.h"
-#endif
 #ifdef ENABLE_GLFW
+#include <GLFW/glfw3.h>
 #include "GLFWContext.h"
 #endif
+
+#include "CommandLine.h"
+#include "OffscreenContextFactory.h"
 #include "FBO.h"
 #include "state.h"
 #include "render_immediate.h"
@@ -144,22 +134,16 @@ int main(int argc, char *argv[])
   }
   bool requestGLES = !argGLESVersion.empty();
 
-  int requestMajor = 0;
-  int requestMinor = 0;
-  int numVersionElements = sscanf(requestVersion.c_str(), "%d.%d", &requestMajor, &requestMinor);
+  unsigned int requestMajor = 0;
+  unsigned int requestMinor = 0;
+  int numVersionElements = sscanf(requestVersion.c_str(), "%u.%u", &requestMajor, &requestMinor);
   if (numVersionElements == 0) {
     std::cerr << "Error parsing requestec GL version string \"" << requestVersion << "\"" << std::endl;
     return 1;
   }
 
   if (argContextProvider.empty()) {
-#ifdef __APPLE__
-    argContextProvider = "cgl";
-#elif defined(HAS_EGL)
-    argContextProvider = "egl";
-#elif defined(_WIN32)
-    argContextProvider = "wgl";
-#endif
+    argContextProvider = OffscreenContextFactory::defaultProvider();
   }
 
 #if HAS_EGL
@@ -177,45 +161,18 @@ int main(int argc, char *argv[])
   std::shared_ptr<OpenGLContext> ctx;
 
   std::transform(argContextProvider.begin(), argContextProvider.end(), argContextProvider.begin(), ::tolower);
-#ifdef __APPLE__
-  if (argContextProvider == "nsopengl") {
-    ctx = OffscreenContextNSOpenGL::create(argWidth, argHeight, requestMajor, requestMinor);
-  }
-  else if (argContextProvider == "cgl") {
-    ctx = OffscreenContextCGL::create(argWidth, argHeight, requestMajor, requestMinor);
-  }
-  else
-#endif
-#if HAS_EGL
-  if (argContextProvider == "egl") {
-    ctx = OffscreenContextEGL::create(argWidth, argHeight, requestMajor, requestMinor, requestGLES, argProfile == "compatibility",
-    argGPU);
-  }
-  else
-#endif
-#ifdef ENABLE_GLX
-  if (argContextProvider == "glx") {
-    ctx = OffscreenContextGLX::create(argWidth, argHeight, requestMajor, requestMinor, requestGLES, argProfile == "compatibility");
-  }
-  else
-#endif
-#ifdef _WIN32
-  if (argContextProvider == "wgl") {
-    ctx = OffscreenContextWGL::create(argWidth, argHeight, requestMajor, requestMinor, argProfile == "compatibility");
-  }
-  else
-#endif
-#ifdef ENABLE_GLFW
-  if (argContextProvider == "glfw") {
-    ctx = GLFWContext::create(argWidth, argHeight, requestMajor, requestMinor, argInvisible);
-  }
-  else
-#endif
-  {
-    std::cerr << "Unknown OpenGL context provider \"" << argContextProvider << "\"" << std::endl;
-    return 1;
-  }
 
+  OffscreenContextFactory::ContextAttributes attrib = {
+    .width = argWidth,
+    .height = argHeight,
+    .majorGLVersion = requestMajor,
+    .minorGLVersion = requestMinor,
+    .gles = requestGLES,
+    .compatibilityProfile = argProfile == "compatibility",
+    .gpu = argGPU,
+    .invisible = argInvisible,
+  };
+  ctx = OffscreenContextFactory::create(argContextProvider, attrib);
   if (!ctx) {
     std::cerr << "Error: Unable to create GL context" << std::endl;
     return 1;
