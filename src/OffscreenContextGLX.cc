@@ -17,12 +17,12 @@ int xlibErrorHandler(Display *dpy, XErrorEvent *event) {
 
 }  // namespace
 
-class OffscreenContextGLXImpl : public OffscreenContextGLX {
+class OffscreenContextGLX : public OffscreenContext {
 public:
   GLXContext glxContext = nullptr;
   Display *display = nullptr;
   Window xWindow = 0;
-  OffscreenContextGLXImpl(int width, int height) : OffscreenContextGLX(width, height) {}
+  OffscreenContextGLX(int width, int height) : OffscreenContext(width, height) {}
 
   bool makeCurrent() override {
     return glXMakeContextCurrent(this->display, this->xWindow, this->xWindow, this->glxContext);
@@ -134,10 +134,10 @@ public:
 
    This function will alter ctx.openGLContext and ctx.xwindow if successful
  */
-std::shared_ptr<OffscreenContextGLX> OffscreenContextGLX::create(size_t width, size_t height,
-								 size_t majorGLVersion, size_t minorGLVersion, bool gles, bool compatibilityProfile)
+std::shared_ptr<OffscreenContext> CreateOffscreenContextGLX(size_t width, size_t height,
+							    size_t majorGLVersion, size_t minorGLVersion, bool gles, bool compatibilityProfile)
 {
-  auto ctx = std::make_shared<OffscreenContextGLXImpl>(width, height);
+  auto ctx = std::make_shared<OffscreenContextGLX>(width, height);
 
   ctx->display = XOpenDisplay(nullptr);
   if (ctx->display == nullptr) {

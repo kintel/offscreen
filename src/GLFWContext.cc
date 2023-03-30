@@ -12,8 +12,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
   }
 }
 
-std::shared_ptr<GLFWContext> GLFWContext::create(size_t width, size_t height,
-						 size_t majorGLVersion, size_t minorGLVersion, bool invisible)
+std::shared_ptr<GLFWContext> CreateGLFWContext(size_t width, size_t height,
+					       size_t majorGLVersion, size_t minorGLVersion, bool invisible)
 {
   if (!glfwInit()) {
     std::cerr << "glfwInit() failed" << std::endl;

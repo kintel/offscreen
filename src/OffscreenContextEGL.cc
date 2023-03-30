@@ -40,7 +40,7 @@ const char* eglGetErrorString( EGLint error )
 
 } // namespace
 
-class OffscreenContextEGLImpl : public OffscreenContextEGL {
+class OffscreenContextEGL : public OffscreenContext {
 
 public:
   EGLDisplay eglDisplay;
@@ -50,7 +50,7 @@ public:
 // If eglDisplay is backed by a GBM device.
   struct gbm_device *gbmDevice = nullptr;
 
-  OffscreenContextEGLImpl(int width, int height) : OffscreenContextEGL(width, height) {}
+  OffscreenContextEGL(int width, int height) : OffscreenContext(width, height) {}
   
   bool makeCurrent() override {
     eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext);
@@ -139,11 +139,11 @@ public:
 // OpenGL core major.minor
 // OpenGL compatibility major.minor
 // OpenGL ES major.minor
-std::shared_ptr<OffscreenContextEGL> OffscreenContextEGL::create(size_t width, size_t height,
-								 size_t majorGLVersion, size_t minorGLVersion, bool gles, bool compatibilityProfile,
+std::shared_ptr<OffscreenContext> CreateOffscreenContextEGL(size_t width, size_t height,
+							       size_t majorGLVersion, size_t minorGLVersion, bool gles, bool compatibilityProfile,
                  const std::string &drmNode)
 {
-  auto ctx = std::make_shared<OffscreenContextEGLImpl>(width, height);
+  auto ctx = std::make_shared<OffscreenContextEGL>(width, height);
 
   int initialEglVersion = gladLoaderLoadEGL(NULL);
   if (!initialEglVersion) {

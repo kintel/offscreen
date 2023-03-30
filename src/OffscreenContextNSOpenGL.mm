@@ -6,10 +6,10 @@
 
 #import <AppKit/AppKit.h>
 
-class OffscreenContextNSOpenGLImpl : public OffscreenContextNSOpenGL {
+class OffscreenContextNSOpenGL : public OffscreenContext {
 
 public:
- OffscreenContextNSOpenGLImpl(int width, int height) : OffscreenContextNSOpenGL(width, height) { }
+ OffscreenContextNSOpenGL(int width, int height) : OffscreenContext(width, height) { }
   NSOpenGLContext *openGLContext;
   NSAutoreleasePool *pool;
 
@@ -23,10 +23,10 @@ public:
   }
 };
 
-std::shared_ptr<OffscreenContextNSOpenGL> OffscreenContextNSOpenGL::create(size_t width, size_t height,
-									   size_t majorGLVersion, size_t minorGLVersion)
+std::shared_ptr<OffscreenContext> CreateOffscreenContextNSOpenGL(size_t width, size_t height,
+									 size_t majorGLVersion, size_t minorGLVersion)
 {
-  auto ctx = std::make_shared<OffscreenContextNSOpenGLImpl>(width, height);
+  auto ctx = std::make_shared<OffscreenContextNSOpenGL>(width, height);
 
   ctx->pool = [NSAutoreleasePool new];
 

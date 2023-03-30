@@ -6,10 +6,10 @@
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/OpenGL.h>
 
-class OffscreenContextCGLImpl : public OffscreenContextCGL {
+class OffscreenContextCGL : public OffscreenContext {
 
 public:
-  OffscreenContextCGLImpl(int width, int height) : OffscreenContextCGL(width, height) {}
+  OffscreenContextCGL(int width, int height) : OffscreenContext(width, height) {}
   CGLContextObj cglContext = nullptr;
 
   bool makeCurrent() override {
@@ -24,10 +24,10 @@ public:
   }
 };
 
-std::shared_ptr<OffscreenContextCGL> OffscreenContextCGL::create(size_t width, size_t height,
-								 size_t majorGLVersion, size_t minorGLVersion)
+std::shared_ptr<OffscreenContext> CreateOffscreenContextCGL(size_t width, size_t height,
+							    size_t majorGLVersion, size_t minorGLVersion)
 {
-  auto ctx = std::make_shared<OffscreenContextCGLImpl>(width, height);
+  auto ctx = std::make_shared<OffscreenContextCGL>(width, height);
 
   CGLOpenGLProfile glVersion = kCGLOGLPVersion_Legacy;
   if (majorGLVersion >= 4) glVersion = kCGLOGLPVersion_GL4_Core;

@@ -11,8 +11,6 @@ class GLFWContext : public OpenGLContext {
 public:
   GLFWwindow* window;
 public:
-  static std::shared_ptr<GLFWContext> create(size_t width, size_t height,
-					     size_t majorGLVersion, size_t minorGLVersion, bool invisible);
   GLFWContext(GLFWwindow* window, int width, int height);
 
   bool isOffscreen() const override { return false; }
@@ -24,3 +22,6 @@ public:
 
   void loop(std::function<void()> render);
 };
+
+std::shared_ptr<GLFWContext> CreateGLFWContext(size_t width, size_t height,
+					       size_t majorGLVersion, size_t minorGLVersion, bool invisible);

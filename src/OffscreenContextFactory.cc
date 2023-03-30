@@ -44,36 +44,36 @@ std::shared_ptr<OpenGLContext> create(const std::string& provider, const Context
   // FIXME: We could log an error if the chosen provider doesn't support all our attribs.
 #ifdef __APPLE__
   if (provider == "nsopengl") {
-    return OffscreenContextNSOpenGL::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
+    return CreateOffscreenContextNSOpenGL(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
   }
   if (provider == "cgl") {
-    return OffscreenContextCGL::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
+    return CreateOffscreenContextCGL(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
   }
 #endif
 #if HAS_EGL
   if (provider == "egl") {
-    return OffscreenContextEGL::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
-                                       attrib.gles, attrib.compatibilityProfile, attrib.gpu);
+    return CreateOffscreenContextEGL(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
+				     attrib.gles, attrib.compatibilityProfile, attrib.gpu);
   }
   else
 #endif
 #ifdef ENABLE_GLX
   if (provider == "glx") {
-   return OffscreenContextGLX::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion, 
-                                      attrib.gles, attrib.compatibilityProfile);
+   return CreateOffscreenContextGLX(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
+				    attrib.gles, attrib.compatibilityProfile);
   }
 #endif
 #ifdef _WIN32
   if (provider == "wgl") {
-    return OffscreenContextWGL::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
-                                       attrib.compatibilityProfile);
+    return CreateOffscreenContextWGL(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
+				     attrib.compatibilityProfile);
   }
   else
 #endif
 #ifdef ENABLE_GLFW
   if (provider == "glfw") {
-    return GLFWContext::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
-                               attrib.invisible);
+    return CreateGLFWContext(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
+			     attrib.invisible);
   }
 #endif
   std::cerr << "Context provider '" << provider << "' not found" << std::endl;

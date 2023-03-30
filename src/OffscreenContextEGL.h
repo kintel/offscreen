@@ -5,12 +5,7 @@
 
 #include "OffscreenContext.h"
 
-class OffscreenContextEGL : public OffscreenContext {
-public:
-  OffscreenContextEGL(int width, int height) : OffscreenContext(width, height) {}
-  // FIXME: Query/enumerate GPUSs/devices?
-  static std::shared_ptr<OffscreenContextEGL> create(
+std::shared_ptr<OffscreenContext> CreateOffscreenContextEGL(
     size_t width, size_t height, size_t majorGLVersion, 
     size_t minorGLVersion, bool gles, bool compatibilityProfile,
     const std::string& drmNode = "");
-};

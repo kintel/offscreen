@@ -10,14 +10,14 @@
 #include <glad/gl.h>
 #endif
 
-class OffscreenContextWGLImpl : public OffscreenContextWGL {
+class OffscreenContextWGL : public OffscreenContext {
 
 public:
   HWND window = nullptr;
   HDC devContext = nullptr;
   HGLRC renderContext = nullptr;
 
-  OffscreenContextWGLImpl(int width, int height) : OffscreenContextWGL(width, height) {}
+  OffscreenContextWGL(int width, int height) : OffscreenContext(width, height) {}
   
   bool makeCurrent() override {
     wglMakeCurrent(this->devContext, this->renderContext);
@@ -48,10 +48,10 @@ public:
   }
 };
 
-std::shared_ptr<OffscreenContextWGL> OffscreenContextWGL::create(size_t width, size_t height,
-								 size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile)
+std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t height,
+							    size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile)
 {
-  auto ctx = std::make_shared<OffscreenContextWGLImpl>(width, height);
+  auto ctx = std::make_shared<OffscreenContextWGL>(width, height);
 
   WNDCLASSEX wndClass = {
     .cbSize = sizeof(WNDCLASSEX),
