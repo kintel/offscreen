@@ -19,13 +19,6 @@
 #include "GLFWContext.h"
 #endif
 
-using namespace OffscreenContextFactory;
-
-namespace {
-
-
-}  // namespace
-
 namespace OffscreenContextFactory {
 
 const char *defaultProvider() {
@@ -54,7 +47,7 @@ std::shared_ptr<OpenGLContext> create(const std::string& provider, const Context
     return OffscreenContextNSOpenGL::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
   }
   if (provider == "cgl") {
-    return = OffscreenContextCGL::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
+    return OffscreenContextCGL::create(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
   }
 #endif
 #if HAS_EGL
