@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
   std::string argRenderMode = "auto";
   std::string argGPU = "";
   bool argDumpEGL = false;
+  std::string argOut = "";
   bool argVerbose = false;
   bool argPrintHelp = false;
 
@@ -103,6 +104,7 @@ int main(int argc, char *argv[])
   args.addArgument({"--gpu"}, &argGPU, "[EGL] Which GPU to use (e.g. /dev/dri/renderD128)");
  #endif
   args.addArgument({"--dump-egl"}, &argDumpEGL, "Dump verbose EGL info.");
+  args.addArgument({"-o", "--out"}, &argOut, "Write framebuffer to file.");
   args.addArgument({"-v", "--verbose"}, &argVerbose, "Verbose output.");
   args.addArgument({"-h", "--help"}, &argPrintHelp, "Print this help.");
 
@@ -334,9 +336,11 @@ int main(int argc, char *argv[])
     GL_CHECK(render());
   }
 
-  glFinish();
-  if (!saveFramebuffer(*ctx, "out.png")) {
-    std::cerr << "Unable to write framebuffer" << std::endl;
+  if (!argOut.empty()) {
+    glFinish();
+    if (!saveFramebuffer(*ctx, argOut.c_str())) {
+      std::cerr << "Unable to write framebuffer to " << argOut << std::endl;
+    }
   }
 
   //ctx->destroy();

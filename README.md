@@ -74,36 +74,36 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 **OpenGL 2**
 
 ```bash
-./offscreen --width 640 --height 480 --context cgl --opengl 2 --mode modern
-./offscreen --width 640 --height 480 --context nsopengl --opengl 2 --mode immediate
+./offscreen --width 640 --height 480 --context cgl --opengl 2 --mode modern -o out.png
+./offscreen --width 640 --height 480 --context nsopengl --opengl 2 --mode immediate -o out.png
 ```
 
 **OpenGL 3+**
 
 ```bash
-./offscreen --width 640 --height 480 --context cgl --opengl 3.2 --mode modern
-./offscreen --width 640 --height 480 --context nsopengl --opengl 3.2 --mode modern
+./offscreen --width 640 --height 480 --context cgl --opengl 3.2 --mode modern -o out.png
+./offscreen --width 640 --height 480 --context nsopengl --opengl 3.2 --mode modern -o out.png
 ```
 
 ### Linux OpenGL 3 compatibility mode
 
 ```bash
-./offscreen --context egl --opengl 3 --profile compatibility --mode immediate
+./offscreen --context egl --opengl 3 --profile compatibility --mode immediate -o out.png
 ```
 
 ### Linux OpenGL 4 core
 
 ```bash
-./offscreen --context egl --opengl 4 --profile core --mode modern
+./offscreen --context egl --opengl 4 --profile core --mode modern -o out.png
 ```
 ### Linux Choose GPU
 
 ```bash
-./offscreen --context egl --gpu /dev/dri/renderD128
+./offscreen --context egl --gpu /dev/dri/renderD128 -o out.png
 ```
 
 ```bash
-./offscreen --context egl --gpu /dev/dri/renderD129
+./offscreen --context egl --gpu /dev/dri/renderD129 -o out.png
 ```
 
 ### GLES
