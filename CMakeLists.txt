@@ -132,6 +132,15 @@ target_include_directories(offscreen PUBLIC "${CMAKE_SOURCE_DIR}/src")
 # Using C++17 as my RaspberryPi runs gcc=8.3 which doesn't implement <numbers>
 set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
 
+enable_testing()
+add_test(NAME can_run COMMAND offscreen)
+add_test(NAME fails_on_empty_context_arg COMMAND offscreen --context)
+set_property(TEST fails_on_empty_context_arg PROPERTY WILL_FAIL true)
+
+add_test(NAME will_save_framebuffer COMMAND offscreen -o out.png)
+add_test(NAME check_file_exists COMMAND ${CMAKE_COMMAND} -E cat out.png)
+set_tests_properties(check_file_exists PROPERTIES DEPENDS will_save_framebuffer)
+
 message(STATUS " ")
 message(STATUS "====================================")
 message(STATUS "Build Configuration Summary")
