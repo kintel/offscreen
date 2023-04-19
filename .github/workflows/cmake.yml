@@ -33,6 +33,7 @@ jobs:
       with:
         packages: libglvnd-dev libglfw3-dev libglu1-mesa-dev
         version: 1.0
+      if: runner.os == 'Linux'
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
