@@ -133,13 +133,22 @@ target_include_directories(offscreen PUBLIC "${CMAKE_SOURCE_DIR}/src")
 set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
 
 enable_testing()
-add_test(NAME can_run COMMAND offscreen)
+add_test(NAME default_run COMMAND offscreen)
 add_test(NAME fails_on_empty_context_arg COMMAND offscreen --context)
 set_property(TEST fails_on_empty_context_arg PROPERTY WILL_FAIL true)
 
 add_test(NAME will_save_framebuffer COMMAND offscreen -o out.png)
 add_test(NAME check_file_exists COMMAND ${CMAKE_COMMAND} -E cat out.png)
 set_tests_properties(check_file_exists PROPERTIES DEPENDS will_save_framebuffer)
+
+if(APPLE)
+add_test(NAME cgl_opengl2_immediate COMMAND offscreen --context cgl --opengl 2 --mode immediate)
+add_test(NAME cgl_opengl2_modern COMMAND offscreen --context cgl --opengl 2 --mode modern)
+add_test(NAME cgl_opengl3.2_core COMMAND offscreen --context cgl --opengl 3.2 --profile core)
+add_test(NAME nsopengl_opengl2_immediate COMMAND offscreen --context nsopengl --opengl 2 --mode immediate)
+add_test(NAME nsopengl_opengl2_modern COMMAND offscreen --context nsopengl --opengl 2 --mode modern)
+add_test(NAME nsopengl_opengl3.2_core COMMAND offscreen --context nsopengl --opengl 3.2 --profile core)
+endif(APPLE)
 
 message(STATUS " ")
 message(STATUS "====================================")
