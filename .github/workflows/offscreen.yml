@@ -1,4 +1,4 @@
-name: CMake
+name: Offscreen
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
     inputs:
-      debug_enabled:
+      enable_ssh:
         type: boolean
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        description: 'Enable ssh'
         required: false
         default: false
 
@@ -39,7 +39,7 @@ jobs:
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
-      if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.enable_ssh }}
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
