@@ -36,7 +36,6 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextCGL(size_t width, size_t
   CGLPixelFormatAttribute attributes[13] = {
     kCGLPFAOpenGLProfile,
     (CGLPixelFormatAttribute)glVersion,
-    kCGLPFAAccelerated,
     kCGLPFAColorSize, (CGLPixelFormatAttribute)24,
     kCGLPFAAlphaSize, (CGLPixelFormatAttribute)8,
     kCGLPFADoubleBuffer,
@@ -46,8 +45,9 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextCGL(size_t width, size_t
   };
   CGLPixelFormatObj pixelFormat = NULL;
   GLint numPixelFormats = 0;
-  if (CGLChoosePixelFormat(attributes, &pixelFormat, &numPixelFormats) != kCGLNoError) {
-    std::cerr << "CGLChoosePixelFormat() failed" << std::endl;
+  const auto status = CGLChoosePixelFormat(attributes, &pixelFormat, &numPixelFormats);
+  if (status != kCGLNoError) {
+    std::cerr << "CGLChoosePixelFormat() failed: " << CGLErrorString(status) << std::endl;
     return nullptr;
   }
   CGLCreateContext(pixelFormat, NULL, &ctx->cglContext);
