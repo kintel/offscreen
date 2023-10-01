@@ -5,6 +5,5 @@
 struct MyState {
   GLuint shaderProgram;
   GLuint vao;
-  GLuint ebo;
   int numTris;
 };
