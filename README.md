@@ -112,6 +112,16 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 ./offscreen --gles 2
 ```
 
+## Running Tests
+
+First, ensure you have built the project as described in the 'Build & run' section above.
+
+Tests are run from the build directory using `ctest -C <BUILD_TYPE>`. For example, to run tests for the Release build type:
+
+```bash
+ctest -C Release
+```
+
 
 ## Context Notes
 
