@@ -47,13 +47,13 @@ make
 
 * cmake
 * glfw3
-* OpenGL
-* Linux: libgbm
+* OpenGL, GLU
+* libgbm (Linux specific)
 
 **Linux (apt)**
 
 ```bash
-sudo apt install cmake libglfw3-dev libgl1-mesa-dev libegl1-mesa-dev libgbm-dev
+sudo apt install cmake libglfw3-dev libgl1-mesa-dev libegl1-mesa-dev libgbm-dev libglu1-mesa-dev
 ```
 
 ## Examples
