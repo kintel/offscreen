@@ -1,0 +1,39 @@
+name: Cut Release and Create Source Tarball
+
+on:
+  push:
+    tags:
+      - 'offscreen-*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        submodules: 'true'
+
+    - name: Extract version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/offscreen-}" >> $GITHUB_ENV
+
+    - name: Create VERSION file
+      run: echo ${{ env.VERSION }} > VERSION
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.x'
+
+    - name: Install git-archive-all
+      run: pip install git-archive-all
+
+    - name: Create source tarball
+      run: git-archive-all --force-submodules --prefix=offscreen-${{ env.VERSION }}/ offscreen-${{ env.VERSION }}.tar.gz
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v5
+      with:
+        name: source-tarball
+        path: offscreen-${{ env.VERSION }}.tar.gz
