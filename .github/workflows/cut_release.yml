@@ -35,5 +35,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v5
       with:
-        name: source-tarball
+        name: offscreen-${{ env.VERSION }}.tar.gz
         path: offscreen-${{ env.VERSION }}.tar.gz
