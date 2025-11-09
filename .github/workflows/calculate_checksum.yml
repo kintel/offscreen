@@ -22,7 +22,7 @@ jobs:
       uses: dawidd6/action-download-artifact@v11
       with:
         name: offscreen-${{ env.VERSION }}.tar.gz
-        run-id: ${{ github.event.workflow_run.id }}
+        run_id: ${{ github.event.workflow_run.id }}
 
     - name: Calculate SHA256 checksum
       run: sha256sum offscreen-${{ env.VERSION }}.tar.gz > offscreen-${{ env.VERSION }}.sha256
