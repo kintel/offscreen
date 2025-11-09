@@ -1,0 +1,34 @@
+name: Calculate Checksum
+
+on:
+  workflow_run:
+    workflows: ["Cut Release and Create Source Tarball"]
+    types:
+      - completed
+
+jobs:
+  calculate-checksum:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+    - name: Extract version
+      id: get_version
+      run: |
+        TAG="${{ github.event.workflow_run.head_branch }}"
+        echo "VERSION=${TAG#offscreen-}" >> $GITHUB_ENV
+
+    - name: Download tarball artifact
+      uses: actions/download-artifact@v11
+      with:
+        name: offscreen-${{ env.VERSION }}.tar.gz
+        run-id: ${{ github.event.workflow_run.id }}
+
+    - name: Calculate SHA256 checksum
+      run: sha256sum offscreen-${{ env.VERSION }}.tar.gz > offscreen-${{ env.VERSION }}.sha256
+
+    - name: Upload checksum artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: offscreen-${{ env.VERSION }}.sha256
+        path: offscreen-${{ env.VERSION }}.sha256
