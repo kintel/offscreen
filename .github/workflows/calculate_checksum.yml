@@ -28,7 +28,7 @@ jobs:
       run: sha256sum offscreen-${{ env.VERSION }}.tar.gz > offscreen-${{ env.VERSION }}.sha256
 
     - name: Upload checksum artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: offscreen-${{ env.VERSION }}.sha256
         path: offscreen-${{ env.VERSION }}.sha256
