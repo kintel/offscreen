@@ -29,6 +29,10 @@ jobs:
       - store_artifacts:
           path: /tmp/artifacts
           destination: source-tarball
+      - persist_to_workspace:
+          root: /tmp/artifacts
+          paths:
+            - offscreen-*.tar.gz
 
 workflows:
   version: 2
