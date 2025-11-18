@@ -56,8 +56,8 @@ workflows:
   my-release-workflow:
     jobs:
       - cut-release:
-        filters: *filters
+          filters: *filters
       - calculate-checksum:
-        filters: *filters
-        requires:
-          - cut-release
+          filters: *filters
+          requires:
+            - cut-release
