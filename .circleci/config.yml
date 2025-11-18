@@ -35,7 +35,7 @@ jobs:
       - image: cimg/python:3.10
     steps:
       - attach_workspace:
-          at: /tmp/workspace
+          at: /tmp/artifacts
       - run:
           name: "Extract version"
           command: echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
