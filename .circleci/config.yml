@@ -25,7 +25,9 @@ jobs:
       - run:
           name: "Create source tarball"
           command: |
+            echo "Creating tarball for $VERSION"
             git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ offscreen-${VERSION}.tar.gz
+            ls -l offscreen-${VERSION}.tar.gz
       - store_artifacts:
           path: offscreen-${VERSION}.tar.gz
 
