@@ -16,9 +16,7 @@ jobs:
           command: echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
       - run:
           name: "Create VERSION file"
-          command: |
-            echo $VERSION > VERSION
-            cat VERSION
+          command: echo "$VERSION" > VERSION
       - run:
           name: "Install git-archive-all"
           command: pip install git-archive-all
@@ -26,10 +24,11 @@ jobs:
           name: "Create source tarball"
           command: |
             echo "Creating tarball for $VERSION"
-            git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ offscreen-${VERSION}.tar.gz
-            ls -l offscreen-${VERSION}.tar.gz
+            mkdir -p /tmp/artifacts
+            git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ /tmp/artifacts/offscreen-${VERSION}.tar.gz
       - store_artifacts:
-          path: offscreen-${VERSION}.tar.gz
+          path: /tmp/artifacts
+          destination: source-tarball
 
 workflows:
   version: 2
