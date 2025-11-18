@@ -47,16 +47,17 @@ jobs:
           path: /tmp/artifacts
           destination: source-tarball
 
+filters: &filters
+  tags:
+    only: /^offscreen-.*/
+
 workflows:
   version: 2
-  release:
+  my-release-workflow:
     jobs:
       - cut-release:
-          filters:
-            tags:
-              only: /^offscreen-.*/
-            branches:
-              ignore: /.*/
+        filters: *filters
       - calculate-checksum:
-          requires:
-            - cut-release
+        filters: *filters
+        requires:
+          - cut-release
