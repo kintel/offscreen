@@ -17,7 +17,6 @@ jobs:
       - run:
           name: "Create VERSION file"
           command: |
-            source $BASH_ENV
             echo $VERSION > VERSION
       - run:
           name: "Install git-archive-all"
@@ -25,7 +24,6 @@ jobs:
       - run:
           name: "Create source tarball"
           command: |
-            source $BASH_ENV
             git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ offscreen-${VERSION}.tar.gz
       - store_artifacts:
           path: offscreen-${VERSION}.tar.gz
