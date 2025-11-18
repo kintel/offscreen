@@ -23,16 +23,29 @@ jobs:
       - run:
           name: "Create source tarball"
           command: |
-            echo "Creating tarball for $VERSION"
             mkdir -p /tmp/artifacts
             git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ /tmp/artifacts/offscreen-${VERSION}.tar.gz
-      - store_artifacts:
-          path: /tmp/artifacts
-          destination: source-tarball
       - persist_to_workspace:
           root: /tmp/artifacts
           paths:
             - offscreen-*.tar.gz
+
+  calculate-checksum:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: "Extract version"
+          command: echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
+      - run:
+          name: "Calculate SHA256 checksum"
+          command: |
+            sha256sum /tmp/artifacts/offscreen-${VERSION}.tar.gz > /tmp/artifacts/offscreen-${VERSION}.sha256
+      - store_artifacts:
+          path: /tmp/artifacts
+          destination: source-tarball
 
 workflows:
   version: 2
@@ -44,3 +57,6 @@ workflows:
               only: /^offscreen-.*/
             branches:
               ignore: /.*/
+      - calculate-checksum:
+          requires:
+            - cut-release
