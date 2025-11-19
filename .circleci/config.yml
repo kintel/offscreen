@@ -43,6 +43,10 @@ jobs:
           name: "Calculate SHA256 checksum"
           command: |
             sha256sum /tmp/artifacts/offscreen-${VERSION}.tar.gz > /tmp/artifacts/offscreen-${VERSION}.sha256
+      - run:
+          name: "Calculate SHA512 checksum"
+          command: |
+            sha512sum /tmp/artifacts/offscreen-${VERSION}.tar.gz > /tmp/artifacts/offscreen-${VERSION}.sha512
       - store_artifacts:
           path: /tmp/artifacts
           destination: source-tarball
