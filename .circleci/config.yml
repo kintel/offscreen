@@ -13,7 +13,9 @@ jobs:
             git submodule update --init
       - run:
           name: "Extract version"
-          command: echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
+          command: |
+            echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
+            echo "Extracted version: ${CIRCLE_TAG#offscreen-}"
       - run:
           name: "Create VERSION file"
           command: echo "$VERSION" > VERSION
@@ -38,7 +40,9 @@ jobs:
           at: /tmp/artifacts
       - run:
           name: "Extract version"
-          command: echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
+          command: |
+            echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
+            echo "Extracted version: ${CIRCLE_TAG#offscreen-}"
       - run:
           name: "Calculate SHA256 checksum"
           command: |
