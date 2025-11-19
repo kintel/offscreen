@@ -54,6 +54,8 @@ jobs:
 filters: &filters
   tags:
     only: /^offscreen-.*/
+  branches:
+    ignore: /.*/
 
 workflows:
   version: 2
