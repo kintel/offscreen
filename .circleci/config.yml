@@ -26,7 +26,9 @@ jobs:
           name: "Create source tarball"
           command: |
             mkdir -p /tmp/artifacts
-            git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ /tmp/artifacts/offscreen-${VERSION}.tar.gz
+            git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ /tmp/artifacts/offscreen-${VERSION}.tar
+            tar -rf /tmp/artifacts/offscreen-${VERSION}.tar --transform "s|^|offscreen-${VERSION}/|" VERSION
+            gzip /tmp/artifacts/offscreen-${VERSION}.tar
       - persist_to_workspace:
           root: /tmp/artifacts
           paths:

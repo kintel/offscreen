@@ -30,7 +30,10 @@ jobs:
       run: pip install git-archive-all
 
     - name: Create source tarball
-      run: git-archive-all --force-submodules --prefix=offscreen-${{ env.VERSION }}/ offscreen-${{ env.VERSION }}.tar.gz
+      run: |
+        git-archive-all --force-submodules --prefix=offscreen-${{ env.VERSION }}/ offscreen-${{ env.VERSION }}.tar
+        tar -rf offscreen-${{ env.VERSION }}.tar --transform "s|^|offscreen-${{ env.VERSION }}/|" VERSION
+        gzip offscreen-${{ env.VERSION }}.tar
 
     - name: Upload artifact
       uses: actions/upload-artifact@v5
