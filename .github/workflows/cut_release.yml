@@ -19,7 +19,7 @@ jobs:
       run: echo "VERSION=${GITHUB_REF#refs/tags/offscreen-}" >> $GITHUB_ENV
 
     - name: Create VERSION file
-      run: echo ${{ env.VERSION }} > VERSION
+      run: echo ${{ env.VERSION }} > VERSION.txt
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -32,7 +32,7 @@ jobs:
     - name: Create source tarball
       run: |
         git-archive-all --force-submodules --prefix=offscreen-${{ env.VERSION }}/ offscreen-${{ env.VERSION }}.tar
-        tar -rf offscreen-${{ env.VERSION }}.tar --transform "s|^|offscreen-${{ env.VERSION }}/|" VERSION
+        tar -rf offscreen-${{ env.VERSION }}.tar --transform "s|^|offscreen-${{ env.VERSION }}/|" VERSION.txt
         gzip offscreen-${{ env.VERSION }}.tar
 
     - name: Upload artifact

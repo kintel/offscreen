@@ -18,7 +18,7 @@ jobs:
             echo "Extracted version: ${CIRCLE_TAG#offscreen-}"
       - run:
           name: "Create VERSION file"
-          command: echo "$VERSION" > VERSION
+          command: echo "$VERSION" > VERSION.txt
       - run:
           name: "Install git-archive-all"
           command: pip install git-archive-all
@@ -27,7 +27,7 @@ jobs:
           command: |
             mkdir -p /tmp/artifacts
             git-archive-all --force-submodules --prefix=offscreen-${VERSION}/ /tmp/artifacts/offscreen-${VERSION}.tar
-            tar -rf /tmp/artifacts/offscreen-${VERSION}.tar --transform "s|^|offscreen-${VERSION}/|" VERSION
+            tar -rf /tmp/artifacts/offscreen-${VERSION}.tar --transform "s|^|offscreen-${VERSION}/|" VERSION.txt
             gzip /tmp/artifacts/offscreen-${VERSION}.tar
       - persist_to_workspace:
           root: /tmp/artifacts
