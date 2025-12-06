@@ -57,6 +57,23 @@ jobs:
           path: /tmp/artifacts
           destination: source-tarball
 
+  publish-github-release:
+    docker:
+      - image: circleci/golang:1.16
+    steps:
+      - attach_workspace:
+          at: /tmp/artifacts
+      - run:
+          name: "Extract version"
+          command: |
+            echo "export VERSION=${CIRCLE_TAG#offscreen-}" >> $BASH_ENV
+            echo "Extracted version: ${CIRCLE_TAG#offscreen-}"
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            go get github.com/tcnksm/ghr
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/artifacts/
+
 filters: &filters
   tags:
     only: /^offscreen-.*/
@@ -73,3 +90,7 @@ workflows:
           filters: *filters
           requires:
             - cut-release
+      - publish:
+          filters: *filters
+          requires:
+            - calculate-checksum
