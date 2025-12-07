@@ -59,7 +59,7 @@ jobs:
 
   publish:
     docker:
-      - image: circleci/golang:1.16
+      - image: golang:1.23
     steps:
       - attach_workspace:
           at: /tmp/artifacts
