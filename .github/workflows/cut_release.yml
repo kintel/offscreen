@@ -36,7 +36,7 @@ jobs:
         gzip offscreen-${{ env.VERSION }}.tar
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: offscreen-${{ env.VERSION }}.tar.gz
         path: offscreen-${{ env.VERSION }}.tar.gz
