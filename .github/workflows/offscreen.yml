@@ -57,7 +57,7 @@ jobs:
       run: ctest -C ${{env.BUILD_TYPE}}
 
     - name: Upload Test Results
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: ${{ always() }}
       with:
         name: Test Results(${{ matrix.os }})
