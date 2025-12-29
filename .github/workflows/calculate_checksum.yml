@@ -19,7 +19,7 @@ jobs:
         echo "VERSION=${TAG#offscreen-}" >> $GITHUB_ENV
 
     - name: Download tarball artifact
-      uses: dawidd6/action-download-artifact@v11
+      uses: dawidd6/action-download-artifact@v12
       with:
         name: offscreen-${{ env.VERSION }}.tar.gz
         run_id: ${{ github.event.workflow_run.id }}
