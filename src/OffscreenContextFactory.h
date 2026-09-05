@@ -1,14 +1,16 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <string>
 
 #include "OffscreenContext.h"
 
 namespace OffscreenContextFactory {
 
 struct ContextAttributes {
-  unsigned int width;
-  unsigned int height;
+  uint32_t width;
+  uint32_t height;
   unsigned int majorGLVersion;
   unsigned int minorGLVersion;
   bool gles;
@@ -21,3 +23,4 @@ const char *defaultProvider();
 std::shared_ptr<OpenGLContext> create(const std::string& provider, const ContextAttributes& attrib);
 
 }  // namespace OffscreenContextFactory
+

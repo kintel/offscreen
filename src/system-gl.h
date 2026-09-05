@@ -34,11 +34,11 @@ void glCheck(const char *stmt, const char *file, int line)
 } // namespace
 
 #ifdef USE_GLAD
-#define hasGLExtension(ext) GLAD_##ext
+#define hasGLExtension(ext) GLAD_GL_##ext
 #else
 void initGLExtensions(int major, int minor, bool gles);
 bool lookupGLExtension(const char *ext);
-#define hasGLExtension(ext) lookupGLExtension(#ext)
+#define hasGLExtension(ext) lookupGLExtension("GL_" #ext)
 #endif
 
 #ifdef DEBUG
@@ -46,3 +46,4 @@ bool lookupGLExtension(const char *ext);
 #else
   #define GL_CHECK(stmt) stmt
 #endif
+

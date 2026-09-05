@@ -40,13 +40,14 @@ std::shared_ptr<GLFWContext> CreateGLFWContext(size_t width, size_t height,
 
   int fbWidth, fbHeight;
   glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-  auto context = std::make_shared<GLFWContext>(window, fbWidth, fbHeight);
+  auto context = std::make_shared<GLFWContext>(window, static_cast<uint32_t>(fbWidth), static_cast<uint32_t>(fbHeight));
 
   return context;
 }
 
-GLFWContext::GLFWContext(GLFWwindow* window, int width, int height) : OpenGLContext(width, height), window(window) {
+GLFWContext::GLFWContext(GLFWwindow* window, uint32_t width, uint32_t height) : OpenGLContext(width, height), window(window) {
 }
+
 
 void GLFWContext::loop(std::function<void()> render)
 {

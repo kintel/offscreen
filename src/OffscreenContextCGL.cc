@@ -1,31 +1,44 @@
 #include "OffscreenContextCGL.h"
 
+#include <cstddef>
 #include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
 
+#include "OffscreenContext.h"
 #include "system-gl.h"
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/OpenGL.h>
 
 class OffscreenContextCGL : public OffscreenContext {
-
 public:
   OffscreenContextCGL(int width, int height) : OffscreenContext(width, height) {}
-  CGLContextObj cglContext = nullptr;
+  ~OffscreenContextCGL() {
+    if (this->cglContext) {
+      CGLDestroyContext(this->cglContext);
+    }
+  }
 
-  bool makeCurrent() override {
+  std::string getInfo() const override {
+    std::ostringstream out;
+    out << "GL context creator: CGL\n";
+    return out.str();
+  }
+
+  bool makeCurrent() const override {
     if (CGLSetCurrentContext(this->cglContext) != kCGLNoError) {
       std::cerr << "CGLSetCurrentContext() failed" << std::endl;
       return false;
     }
     return true;
   }
-  bool destroy() override {
-    return true;
-  }
+
+  CGLContextObj cglContext = nullptr;
 };
 
 std::shared_ptr<OffscreenContext> CreateOffscreenContextCGL(size_t width, size_t height,
-							    size_t majorGLVersion, size_t minorGLVersion)
+                                                            size_t majorGLVersion, size_t minorGLVersion)
 {
   auto ctx = std::make_shared<OffscreenContextCGL>(width, height);
 
@@ -51,7 +64,8 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextCGL(size_t width, size_t
     return nullptr;
   }
   CGLCreateContext(pixelFormat, NULL, &ctx->cglContext);
-  CGLDestroyPixelFormat(pixelFormat); // or CGLReleasePixelFormat()
+  CGLDestroyPixelFormat(pixelFormat);
 
   return ctx;
 }
+
