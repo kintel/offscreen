@@ -116,6 +116,7 @@ set(SRCS
     src/system-gl.cc
     src/OpenGLContext.cc
     src/OffscreenContext.cc
+    src/OffscreenContextNULL.cc
     src/OffscreenContextFactory.cc
     src/FBO.cc
     src/render_immediate.cc
@@ -137,9 +138,12 @@ add_test(NAME default_run COMMAND offscreen)
 add_test(NAME fails_on_empty_context_arg COMMAND offscreen --context)
 set_property(TEST fails_on_empty_context_arg PROPERTY WILL_FAIL true)
 
+add_test(NAME nullgl_test COMMAND offscreen --context nullgl)
+
 add_test(NAME will_save_framebuffer COMMAND offscreen -o out.png)
 add_test(NAME check_file_exists COMMAND ${CMAKE_COMMAND} -E cat out.png)
 set_tests_properties(check_file_exists PROPERTIES DEPENDS will_save_framebuffer)
+
 
 if(APPLE)
 add_test(NAME cgl_opengl2_immediate COMMAND offscreen --context cgl --opengl 2 --mode immediate)

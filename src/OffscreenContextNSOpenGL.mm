@@ -1,6 +1,10 @@
 #include "OffscreenContextNSOpenGL.h"
 
+#include <cstddef>
 #include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
 
 #include <OpenGL/OpenGL.h>
 
@@ -9,22 +13,30 @@
 class OffscreenContextNSOpenGL : public OffscreenContext {
 
 public:
- OffscreenContextNSOpenGL(int width, int height) : OffscreenContext(width, height) { }
-  NSOpenGLContext *openGLContext;
-  NSAutoreleasePool *pool;
+  OffscreenContextNSOpenGL(int width, int height) : OffscreenContext(width, height) {}
+  ~OffscreenContextNSOpenGL() {
+    [this->openGLContext clearDrawable];
+    [this->openGLContext release];
+    [this->pool release];
+  }
 
-  bool makeCurrent() override {
+  std::string getInfo() const override {
+    std::ostringstream out;
+    out << "GL context creator: NSOpenGL\n";
+    return out.str();
+  }
+
+  bool makeCurrent() const override {
     [this->openGLContext makeCurrentContext];
     return true;
   }
-  bool destroy() override {
-    [this->pool release];
-    return true;
-  }
+
+  NSOpenGLContext *openGLContext;
+  NSAutoreleasePool *pool;
 };
 
 std::shared_ptr<OffscreenContext> CreateOffscreenContextNSOpenGL(size_t width, size_t height,
-									 size_t majorGLVersion, size_t minorGLVersion)
+                                                                 size_t majorGLVersion, size_t minorGLVersion)
 {
   auto ctx = std::make_shared<OffscreenContextNSOpenGL>(width, height);
 
@@ -55,9 +67,9 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextNSOpenGL(size_t width, s
   ctx->openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixFormat shareContext:nil];
   if (!ctx->openGLContext) {
     std::cerr << "Unable to create NSOpenGLContext" << std::endl;
-    [ctx->pool release];
     return nullptr;
   }
 
   return ctx;
 }
+

@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
   bool argVerbose = false;
   bool argPrintHelp = false;
 
-  std::vector<std::string> contextProviders = {"egl", "cgl", "nsopengl", "wgl"};
+  std::vector<std::string> contextProviders = {"egl", "cgl", "nsopengl", "wgl", "nullgl"};
 #ifdef ENABLE_GLX
   contextProviders.push_back("glx");
 #endif
@@ -181,6 +181,13 @@ int main(int argc, char *argv[])
   }
   ctx->makeCurrent();
 
+  if (argContextProvider == "nullgl") {
+    std::cout << "Using NULLGL context. No OpenGL operations performed." << std::endl;
+    std::cout << ctx->getInfo();
+    return 0;
+  }
+
+
 #ifdef USE_GLAD
   int version;
 #ifdef ENABLE_GLFW
@@ -217,8 +224,6 @@ int main(int argc, char *argv[])
     std::cerr << "Unable to parse OpenGL version \"" << glVersion << "\"" << std::endl;
     return 1;
   }
-
-  ctx->setVersion(glMajor, glMinor, requestGLES);
 
 #ifndef USE_GLAD
   initGLExtensions(requestMajor, requestMinor, requestGLES);

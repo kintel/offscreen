@@ -1,10 +1,16 @@
 #include "OffscreenContextGLX.h"
 
+#include <cstddef>
+#include <cstdlib>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+
 #define GLAD_GLX_IMPLEMENTATION
 #include <glad/glx.h>
 
-#include <iostream>
-
+#include "OffscreenContext.h"
 #include "scope_guard.hpp"
 
 namespace {
@@ -23,18 +29,27 @@ public:
   Display *display = nullptr;
   Window xWindow = 0;
   OffscreenContextGLX(int width, int height) : OffscreenContext(width, height) {}
-
-  bool makeCurrent() override {
-    return glXMakeContextCurrent(this->display, this->xWindow, this->xWindow, this->glxContext);
-  }
-  bool destroy() override {
+  ~OffscreenContextGLX() {
     if (this->display) {
       if (this->glxContext) glXDestroyContext(this->display, this->glxContext);
       if (this->xWindow) XDestroyWindow(this->display, this->xWindow);
       XCloseDisplay(this->display);
     }
-    return true;
   }
+
+  std::string getInfo() const override {
+    std::ostringstream result;
+    int major, minor;
+    glXQueryVersion(this->display, &major, &minor);
+    result << "GL context creator: GLX\n"
+           << "GLX version: " << major << "." << minor << "\n";
+    return result.str();
+  }
+
+  bool makeCurrent() const override {
+    return glXMakeContextCurrent(this->display, this->xWindow, this->xWindow, this->glxContext);
+  }
+
 
   // Create an OpenGL context, and a dummy X11 window to draw into, without showing (mapping) it.
   // This purposely does not use glxCreateWindow, to avoid crashes,
@@ -59,11 +74,11 @@ public:
     int numConfigs = 0;
     GLXFBConfig *fbconfigs = nullptr;
     XVisualInfo *visinfo = nullptr;
-    auto guard = sg::make_scope_guard([fbconfigs, visinfo]() {
+    auto guard = sg::make_scope_guard([&fbconfigs, &visinfo]() {
       if (fbconfigs) XFree(fbconfigs);
-      if (visinfo)XFree(visinfo);
+      if (visinfo) XFree(visinfo);
     });
-      fbconfigs = glXChooseFBConfig(this->display, DefaultScreen(this->display), attributes, &numConfigs);
+    fbconfigs = glXChooseFBConfig(this->display, DefaultScreen(this->display), attributes, &numConfigs);
     if (fbconfigs == nullptr) {
       std::cerr << "glXChooseFBConfig() failed" << std::endl;
       return false;

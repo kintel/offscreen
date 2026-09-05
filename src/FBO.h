@@ -8,21 +8,34 @@
 
 class FBO
 {
-  bool useEXT;
-  GLuint fbo_id = 0;
-  GLuint old_fbo_id = 0;
-  GLuint renderbuf_id = 0;
-  GLuint depthbuf_id = 0;
-  bool complete = false;
-
 public:
   FBO(int width, int height, bool useEXT);
   ~FBO() { destroy(); };
-  bool isComplete() { return this->complete; }
+
+  int width() const { return this->width_; }
+  int height() const { return this->height_; }
+  bool isComplete() const { return this->complete_; }
+
   bool resize(size_t width, size_t height);
   GLuint bind();
   void unbind();
+
+private:
   void destroy();
+
+  int width_ = 0;
+  int height_ = 0;
+  bool use_ext_ = false;
+  GLuint fbo_id_ = 0;
+  GLuint old_fbo_id_ = 0;
+  GLuint renderbuf_id_ = 0;
+  GLuint depthbuf_id_ = 0;
+  bool complete_ = false;
 };
 
-std::unique_ptr<FBO> createFBO(const OpenGLContext &ctx);
+std::unique_ptr<FBO> createFBO(int width, int height);
+
+inline std::unique_ptr<FBO> createFBO(const OpenGLContext &ctx) {
+  return createFBO(ctx.width(), ctx.height());
+}
+

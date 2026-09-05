@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
+#include <string>
 #include <functional>
 #include "system-gl.h"
 #include <GLFW/glfw3.h>
@@ -10,12 +13,21 @@
 class GLFWContext : public OpenGLContext {
 public:
   GLFWwindow* window;
-public:
-  GLFWContext(GLFWwindow* window, int width, int height);
+
+  GLFWContext(GLFWwindow* window, uint32_t width, uint32_t height);
+  ~GLFWContext() override {
+    if (this->window) {
+      glfwDestroyWindow(this->window);
+    }
+  }
 
   bool isOffscreen() const override { return false; }
 
-  bool makeCurrent() override {
+  std::string getInfo() const override {
+    return "GL context creator: GLFW\n";
+  }
+
+  bool makeCurrent() const override {
     glfwMakeContextCurrent(this->window);
     return true;
   }
@@ -24,4 +36,5 @@ public:
 };
 
 std::shared_ptr<GLFWContext> CreateGLFWContext(size_t width, size_t height,
-					       size_t majorGLVersion, size_t minorGLVersion, bool invisible);
+                                               size_t majorGLVersion, size_t minorGLVersion, bool invisible);
+

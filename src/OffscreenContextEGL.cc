@@ -1,5 +1,6 @@
 #include "OffscreenContextEGL.h"
 
+#include <cstddef>
 #include <fcntl.h>
 #include <iostream>
 #include <sstream>
@@ -51,13 +52,24 @@ public:
   struct gbm_device *gbmDevice = nullptr;
 
   OffscreenContextEGL(int width, int height) : OffscreenContext(width, height) {}
-  
-  bool makeCurrent() override {
-    eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext);
-    return true;
+  ~OffscreenContextEGL() {
+    if (this->eglSurface) eglDestroySurface(this->eglDisplay, this->eglSurface);
+    if (this->eglDisplay) eglTerminate(this->eglDisplay);
+#ifdef HAS_GBM
+    if (this->gbmDevice) gbm_device_destroy(this->gbmDevice);
+#endif
   }
-  bool destroy() override {
-    return true;
+
+  std::string getInfo() const override {
+    std::ostringstream result;
+    const char *eglVersion = eglQueryString(this->eglDisplay, EGL_VERSION);
+    result << "GL context creator: EGL\n"
+           << "EGL version: " << (eglVersion ? eglVersion : "unknown") << "\n";
+    return result.str();
+  }
+
+  bool makeCurrent() const override {
+    return eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext);
   }
 
 #ifdef HAS_GBM

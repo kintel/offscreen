@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "OffscreenContextNULL.h"
+
 #ifdef __APPLE__
 #include "OffscreenContextNSOpenGL.h"
 #include "OffscreenContextCGL.h"
@@ -37,9 +39,14 @@ const char *defaultProvider() {
 #ifdef ENABLE_GLFW
  return "glfw";
 #endif
+  return "nullgl";
 }
 
 std::shared_ptr<OpenGLContext> create(const std::string& provider, const ContextAttributes& attrib) {
+
+  if (provider == "nullgl" || provider == "null") {
+    return CreateOffscreenContextNULL();
+  }
 
   // FIXME: We could log an error if the chosen provider doesn't support all our attribs.
 #ifdef __APPLE__
@@ -81,4 +88,5 @@ std::shared_ptr<OpenGLContext> create(const std::string& provider, const Context
 }
 
 }  // namespace OffscreenContextFactory
+
 

@@ -1,6 +1,10 @@
 #include "OffscreenContextWGL.h"
 
+#include <cstddef>
 #include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
 
 #include <windows.h>
 #ifdef USE_GLAD
@@ -10,6 +14,9 @@
 #include <glad/gl.h>
 #endif
 
+#include "OffscreenContext.h"
+#include "scope_guard.hpp"
+
 class OffscreenContextWGL : public OffscreenContext {
 
 public:
@@ -18,35 +25,24 @@ public:
   HGLRC renderContext = nullptr;
 
   OffscreenContextWGL(int width, int height) : OffscreenContext(width, height) {}
-  
-  bool makeCurrent() override {
-    wglMakeCurrent(this->devContext, this->renderContext);
-    return true;
-  }
-  bool destroy() override {
+  ~OffscreenContextWGL() {
     wglMakeCurrent(nullptr, nullptr);
-    bool ok = true;
-    if (this->renderContext) {
-      ok = wglDeleteContext(this->renderContext);
-      if (!ok) {
-        std::cerr << "wglDeleteContext() failed: " << GetLastError() << std::endl;
-      }
-    }
-    if (this->devContext) {
-      ok = ReleaseDC(this->window, this->devContext);
-      if (!ok) {
-        std::cerr << "ReleaseDC() failed: " << GetLastError() << std::endl;
-      }
-    }
-    if (this->window) {
-      ok = DestroyWindow(this->window);
-      if (!ok) {
-        std::cerr << "DestroyWindow() failed: " << GetLastError() << std::endl;
-      }
-    }
-    return ok;
+    if (this->renderContext) wglDeleteContext(this->renderContext);
+    if (this->devContext) ReleaseDC(this->window, this->devContext);
+    if (this->window) DestroyWindow(this->window);
+  }
+
+  std::string getInfo() const override {
+    std::ostringstream result;
+    result << "GL context creator: WGL\n";
+    return result.str();
+  }
+
+  bool makeCurrent() const override {
+    return wglMakeCurrent(this->devContext, this->renderContext);
   }
 };
+
 
 std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t height,
 							    size_t majorGLVersion, size_t minorGLVersion, bool compatibilityProfile)
@@ -84,16 +80,19 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t
   const auto tmpRenderContext = wglCreateContext(ctx->devContext);
   if (tmpRenderContext == nullptr) {
     std::cerr << "wglCreateContext() failed: " << GetLastError() << std::endl;
-    ctx->destroy();
     return nullptr;
   }
+  auto guard = sg::make_scope_guard([tmpRenderContext]() {
+    wglMakeCurrent(nullptr, nullptr);
+    wglDeleteContext(tmpRenderContext);
+  });
 
   wglMakeCurrent(ctx->devContext, tmpRenderContext);
   gladLoaderLoadWGL(ctx->devContext);
 
   int attributes[] = {
-    WGL_CONTEXT_MAJOR_VERSION_ARB, majorGLVersion,
-    WGL_CONTEXT_MINOR_VERSION_ARB, minorGLVersion,
+    WGL_CONTEXT_MAJOR_VERSION_ARB, static_cast<int>(majorGLVersion),
+    WGL_CONTEXT_MINOR_VERSION_ARB, static_cast<int>(minorGLVersion),
     WGL_CONTEXT_PROFILE_MASK_ARB,
     compatibilityProfile ? WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB : WGL_CONTEXT_CORE_PROFILE_BIT_ARB,         
     0
@@ -101,13 +100,6 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t
   ctx->renderContext = wglCreateContextAttribsARB(ctx->devContext, nullptr, attributes);
   if (ctx->renderContext == nullptr) {
     std::cerr << "wglCreateContextAttribsARB() failed: " << GetLastError() << std::endl;
-    ctx->destroy();
-    return nullptr;
-  }
-  wglMakeCurrent(nullptr, nullptr);
-  if (!wglDeleteContext(tmpRenderContext)) {
-    std::cerr << "wglDeleteContext() failed: " << GetLastError() << std::endl;
-    ctx->destroy();
     return nullptr;
   }
 
