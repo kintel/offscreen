@@ -14,6 +14,9 @@
 #ifdef _WIN32
 #include "OffscreenContextWGL.h"
 #endif
+#ifdef HAS_OSMESA
+#include "OffscreenContextOSMesa.h"
+#endif
 #ifdef HAS_EGL
 #include "OffscreenContextEGL.h"
 #endif
@@ -29,6 +32,9 @@ namespace OffscreenContextFactory {
 const char *defaultProvider() {
 #ifdef __APPLE__
   return "cgl";
+#endif
+#if HAS_OSMESA
+  return "osmesa";
 #endif
 #if HAS_EGL
   return "egl";
@@ -63,6 +69,12 @@ std::shared_ptr<OpenGLContext> create(const std::string& provider, const Context
   }
   if (provider == "cgl") {
     return CreateOffscreenContextCGL(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion);
+  }
+#endif
+#if HAS_OSMESA
+  if (provider == "osmesa") {
+    return CreateOffscreenContextOSMesa(attrib.width, attrib.height, attrib.majorGLVersion, attrib.minorGLVersion,
+                                       attrib.compatibilityProfile);
   }
 #endif
 #if HAS_EGL

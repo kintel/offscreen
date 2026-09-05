@@ -30,14 +30,29 @@ jobs:
         submodules: 'recursive'
 
     - name: Install dependencies
-      run: brew install glfw
+      run: brew install glfw llvm meson ninja pkgconf bison
+
+    - name: Cache OSMesa
+      id: cache-osmesa
+      uses: actions/cache@v4
+      with:
+        path: dependencies/mesa_install
+        key: osmesa-24.3.4-${{ matrix.os }}
+
+    - name: Build OSMesa
+      if: steps.cache-osmesa.outputs.cache-hit != 'true'
+      run: |
+        python3 -m pip install mako pyyaml packaging
+        ./tools/build-osmesa.sh
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.enable_ssh }}
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: >
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        -DCMAKE_PREFIX_PATH="${{github.workspace}}/dependencies/mesa_install"
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}

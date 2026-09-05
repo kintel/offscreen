@@ -22,6 +22,9 @@
 #include <GLFW/glfw3.h>
 #include "GLFWContext.h"
 #endif
+#ifdef HAS_OSMESA
+#include <GL/osmesa.h>
+#endif
 
 #include "CommandLine.h"
 #include "OffscreenContextFactory.h"
@@ -93,6 +96,9 @@ int main(int argc, char *argv[])
 #endif
 #if HAS_EGL
   contextProviders.push_back("egl");
+#endif
+#ifdef HAS_OSMESA
+  contextProviders.push_back("osmesa");
 #endif
 #ifdef ENABLE_GLX
   contextProviders.push_back("glx");
@@ -213,6 +219,11 @@ int main(int argc, char *argv[])
 #ifdef ENABLE_GLFW
   if (argContextProvider == "glfw") {
     version = requestGLES ? gladLoadGLES2(glfwGetProcAddress) : gladLoadGL(glfwGetProcAddress);
+  } else
+#endif
+#ifdef HAS_OSMESA
+  if (argContextProvider == "osmesa") {
+    version = gladLoadGL(reinterpret_cast<GLADloadfunc>(OSMesaGetProcAddress));
   } else
 #endif
   {

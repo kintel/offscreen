@@ -5,17 +5,19 @@
 #ifdef USE_GLAD
 #define GLAD_GLES2
 #include "glad/gl.h"
+#else
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#include <OpenGL/gl3.h>
+#endif
 #endif
 
 #ifdef _WIN32
 #include <windows.h>
 #include <GL/glu.h>
-#endif
-
-#ifdef __APPLE__
+#elif defined(__APPLE__)
 #define GL_SILENCE_DEPRECATION
 #include <OpenGL/glu.h>
-#include <OpenGL/gl3.h>
 #else
 #include <GL/glu.h>
 #endif
@@ -90,6 +92,4 @@ bool hasGLESVersion2();
 #else
 #define GL_DEBUG_CHECKD(...) __VA_ARGS__
 #endif
-
-
 
