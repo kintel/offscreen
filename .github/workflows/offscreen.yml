@@ -37,6 +37,10 @@ jobs:
       if: runner.os == 'Linux'
     - run: brew install glfw
       if: runner.os == 'macOS'
+    - name: Install Mesa (Windows)
+      uses: ssciwr/setup-mesa-dist-win@v3
+      if: runner.os == 'Windows'
+
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
