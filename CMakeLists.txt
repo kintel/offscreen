@@ -141,8 +141,14 @@ set(SRCS
     )
 target_sources(offscreen PRIVATE ${SRCS})
 target_include_directories(offscreen PUBLIC "${CMAKE_SOURCE_DIR}/src")
-# Using C++17 as my RaspberryPi runs gcc=8.3 which doesn't implement <numbers>
-set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
+if(MSVC)
+  # MSVC requires /std:c++20 for designated initializers
+  set_property(TARGET offscreen PROPERTY CXX_STANDARD 20)
+else()
+  # Using C++17 as my RaspberryPi runs gcc=8.3 which doesn't implement <numbers>
+  set_property(TARGET offscreen PROPERTY CXX_STANDARD 17)
+endif()
+
 
 enable_testing()
 add_test(NAME default_run COMMAND offscreen)

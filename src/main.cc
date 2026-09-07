@@ -167,15 +167,17 @@ int main(int argc, char *argv[])
 
   std::transform(argContextProvider.begin(), argContextProvider.end(), argContextProvider.begin(), ::tolower);
 
-  OffscreenContextFactory::ContextAttributes attrib{};
-  attrib.width = argWidth;
-  attrib.height = argHeight;
-  attrib.majorGLVersion = requestMajor;
-  attrib.minorGLVersion = requestMinor;
-  attrib.gles = requestGLES;
-  attrib.compatibilityProfile = (argProfile == "compatibility");
-  attrib.gpu = argGPU;
-  attrib.invisible = argInvisible;
+  OffscreenContextFactory::ContextAttributes attrib = {
+    .width = argWidth,
+    .height = argHeight,
+    .majorGLVersion = requestMajor,
+    .minorGLVersion = requestMinor,
+    .gles = requestGLES,
+    .compatibilityProfile = (argProfile == "compatibility"),
+    .gpu = argGPU,
+    .invisible = argInvisible,
+  };
+
 
   ctx = OffscreenContextFactory::create(argContextProvider, attrib);
   if (!ctx) {
