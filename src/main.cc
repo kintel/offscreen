@@ -1,9 +1,12 @@
 #include <algorithm>
-#include <numeric>
+#include <ctime>
+#include <functional>
 #include <iostream>
-#include <locale>
-#include <sstream>
 #include <iterator>
+#include <locale>
+#include <numeric>
+#include <sstream>
+
 
 #ifdef USE_GLAD
 #define GLAD_GL_IMPLEMENTATION
@@ -164,16 +167,16 @@ int main(int argc, char *argv[])
 
   std::transform(argContextProvider.begin(), argContextProvider.end(), argContextProvider.begin(), ::tolower);
 
-  OffscreenContextFactory::ContextAttributes attrib = {
-    .width = argWidth,
-    .height = argHeight,
-    .majorGLVersion = requestMajor,
-    .minorGLVersion = requestMinor,
-    .gles = requestGLES,
-    .compatibilityProfile = argProfile == "compatibility",
-    .gpu = argGPU,
-    .invisible = argInvisible,
-  };
+  OffscreenContextFactory::ContextAttributes attrib{};
+  attrib.width = argWidth;
+  attrib.height = argHeight;
+  attrib.majorGLVersion = requestMajor;
+  attrib.minorGLVersion = requestMinor;
+  attrib.gles = requestGLES;
+  attrib.compatibilityProfile = (argProfile == "compatibility");
+  attrib.gpu = argGPU;
+  attrib.invisible = argInvisible;
+
   ctx = OffscreenContextFactory::create(argContextProvider, attrib);
   if (!ctx) {
     std::cerr << "Error: Unable to create GL context" << std::endl;

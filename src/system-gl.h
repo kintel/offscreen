@@ -42,8 +42,9 @@ bool lookupGLExtension(const char *ext);
 #endif
 
 #ifdef DEBUG
-  #define GL_CHECK(stmt) stmt; glCheck(#stmt, __FILE__, __LINE__)
+  #define GL_CHECK(...) __VA_ARGS__; glCheck(#__VA_ARGS__, __FILE__, __LINE__)
 #else
-  #define GL_CHECK(stmt) stmt
+  #define GL_CHECK(...) __VA_ARGS__
 #endif
+
 
