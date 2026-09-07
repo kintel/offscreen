@@ -21,8 +21,9 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, macos-14]
+        os: [ubuntu-latest, macos-latest, macos-14, windows-latest]
 
     steps:
     - uses: actions/checkout@v6
@@ -31,7 +32,7 @@ jobs:
 
     - uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: libglvnd-dev libglfw3-dev libglu1-mesa-dev
+        packages: libglvnd-dev libglfw3-dev libglu1-mesa-dev libegl1-mesa-dev libgbm-dev xvfb
         version: 1.0
       if: runner.os == 'Linux'
     - run: brew install glfw
@@ -52,9 +53,15 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}}
+      env:
+        LIBGL_ALWAYS_SOFTWARE: "1"
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          xvfb-run ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+        else
+          ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+        fi
+      shell: bash
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v6
@@ -64,3 +71,5 @@ jobs:
         path: |
           build/Testing/Temporary/LastTest.log
           build/out.png
+          build/out_320x240.png
+

@@ -23,7 +23,7 @@ jobs:
     container: fedora:latest
 
     steps:
-    - run: yum install -y g++ cmake git glfw-devel
+    - run: dnf install -y gcc-c++ cmake git glfw-devel mesa-libGL-devel mesa-libEGL-devel mesa-dri-drivers xorg-x11-server-Xvfb
 
     - uses: actions/checkout@v6
       with:
@@ -44,14 +44,16 @@ jobs:
 
     - name: Test
       working-directory: /__w/offscreen/offscreen/build
-      # Execute tests defined by the CMake configuration.
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}}
+      env:
+        LIBGL_ALWAYS_SOFTWARE: "1"
+      run: xvfb-run ctest --output-on-failure -C ${{env.BUILD_TYPE}}
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v6
       if: ${{ always() }}
       with:
-        name: Test Results(${{ matrix.os }})
+        name: Test Results(Fedora)
         path: |
           build/Testing/Temporary/LastTest.log
+          build/out.png
+          build/out_320x240.png
