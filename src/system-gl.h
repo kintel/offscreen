@@ -35,11 +35,16 @@ void glCheck(const char *stmt, const char *file, int line)
 
 #ifdef USE_GLAD
 #define hasGLExtension(ext) GLAD_GL_##ext
+#define hasGLVersion3() (GLAD_GL_VERSION_3_0 != 0)
+#define hasGLESVersion2() (GLAD_GL_ES_VERSION_2_0 != 0)
 #else
 void initGLExtensions(int major, int minor, bool gles);
 bool lookupGLExtension(const char *ext);
 #define hasGLExtension(ext) lookupGLExtension("GL_" #ext)
+bool hasGLVersion3();
+bool hasGLESVersion2();
 #endif
+
 
 #ifdef DEBUG
   #define GL_CHECK(...) __VA_ARGS__; glCheck(#__VA_ARGS__, __FILE__, __LINE__)

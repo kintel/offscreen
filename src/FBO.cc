@@ -54,24 +54,16 @@ bool checkFBOStatus() {
 }  // namespace
 
 std::unique_ptr<FBO> createFBO(int width, int height) {
-#ifdef USE_GLAD
-  if (GLAD_GL_VERSION_3_0 || GLAD_GL_ES_VERSION_2_0 || hasGLExtension(ARB_framebuffer_object)) {
+  if (hasGLVersion3() || hasGLESVersion2() || hasGLExtension(ARB_framebuffer_object)) {
     return std::make_unique<FBO>(width, height, /*useEXT*/ false);
   } else if (hasGLExtension(EXT_framebuffer_object)) {
     return std::make_unique<FBO>(width, height, /*useEXT*/ true);
-  }
-#else
-  if (hasGLExtension(ARB_framebuffer_object)) {
-    return std::make_unique<FBO>(width, height, /*useEXT*/ false);
-  } else if (hasGLExtension(EXT_framebuffer_object)) {
-    return std::make_unique<FBO>(width, height, /*useEXT*/ true);
-  }
-#endif
-  else {
+  } else {
     std::cerr << "Framebuffer Objects not supported" << std::endl;
     return nullptr;
   }
 }
+
 
 
 FBO::FBO(int width, int height, bool useEXT) : width_(width), height_(height), use_ext_(useEXT) {
