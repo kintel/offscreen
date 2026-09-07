@@ -15,6 +15,8 @@ endif()
 
 option(USE_GLAD "Use GLAD for OpenGL function wrangling" ${USE_GLAD_DEFAULT})
 option(ENABLE_GLFW "Enable on-screen rendering using glfw" ON)
+option(ENABLE_EGL "Enable EGL offscreen context" ON)
+option(ENABLE_GLX "Enable GLX offscreen context" ON)
 
 set(HAS_GLVND FALSE)
 set(HAS_GLX FALSE)
@@ -37,7 +39,7 @@ else()
   target_link_libraries(offscreen OpenGL::GL)
 endif()
 target_link_libraries(offscreen OpenGL::GLU)
-if (OpenGL_EGL_FOUND)
+if (ENABLE_EGL AND OpenGL_EGL_FOUND)
   if (TARGET OpenGL::EGL)
     # GLVND systems
     target_link_libraries(offscreen OpenGL::EGL)
@@ -53,7 +55,7 @@ if (OpenGL_EGL_FOUND)
     target_link_libraries(offscreen GBM::GBM)
   endif()
 endif()
-if(OpenGL_GLX_FOUND)
+if(ENABLE_GLX AND OpenGL_GLX_FOUND)
   find_package(X11 REQUIRED)
   if(X11_FOUND)
     if(TARGET OpenGL::OpenGL)
@@ -62,9 +64,9 @@ if(OpenGL_GLX_FOUND)
     endif()
     set(HAS_GLX TRUE)
     target_link_libraries(offscreen X11::X11)
-    target_compile_definitions(offscreen PRIVATE ENABLE_GLX)
   endif()
 endif()
+
 
 if(ENABLE_GLFW)
   find_package(glfw3 QUIET)
@@ -107,15 +109,16 @@ if(HAS_EGL)
       src/OffscreenContextEGL.cc
       src/egl_utils.cc
       )
-  add_compile_definitions(HAS_EGL)
+  add_compile_definitions(HAS_EGL ENABLE_EGL)
 endif()
 
 if(HAS_GLX)
   set(SRCS_GLX
       src/OffscreenContextGLX.cc
       )
-  add_compile_definitions(HAS_GLX)
+  add_compile_definitions(HAS_GLX ENABLE_GLX)
 endif()
+
 
 if(ENABLE_GLFW)
   set(SRCS_GLFW src/GLFWContext.cc)
@@ -181,16 +184,26 @@ if(APPLE)
 endif(APPLE)
 
 if(HAS_EGL)
+  add_test(NAME egl_opengl2_immediate COMMAND offscreen --context egl --opengl 2 --mode immediate)
   add_test(NAME egl_opengl2_modern COMMAND offscreen --context egl --opengl 2 --mode modern)
   add_test(NAME egl_gles2 COMMAND offscreen --context egl --gles 2)
   add_test(NAME egl_opengl3_core COMMAND offscreen --context egl --opengl 3.3 --profile core)
+  add_test(NAME egl_opengl3_compat COMMAND offscreen --context egl --opengl 3.3 --profile compatibility)
+  add_test(NAME egl_save_framebuffer COMMAND offscreen --context egl -o out_egl.png)
+  add_test(NAME check_egl_file_exists COMMAND ${CMAKE_COMMAND} -E cat out_egl.png)
+  set_tests_properties(check_egl_file_exists PROPERTIES DEPENDS egl_save_framebuffer)
 endif()
 
 if(HAS_GLX)
   add_test(NAME glx_opengl2_immediate COMMAND offscreen --context glx --opengl 2 --mode immediate)
   add_test(NAME glx_opengl2_modern COMMAND offscreen --context glx --opengl 2 --mode modern)
   add_test(NAME glx_opengl3_core COMMAND offscreen --context glx --opengl 3.3 --profile core)
+  add_test(NAME glx_opengl3_compat COMMAND offscreen --context glx --opengl 3.3 --profile compatibility)
+  add_test(NAME glx_save_framebuffer COMMAND offscreen --context glx -o out_glx.png)
+  add_test(NAME check_glx_file_exists COMMAND ${CMAKE_COMMAND} -E cat out_glx.png)
+  set_tests_properties(check_glx_file_exists PROPERTIES DEPENDS glx_save_framebuffer)
 endif()
+
 
 if(WIN32)
   add_test(NAME wgl_opengl2_immediate COMMAND offscreen --context wgl --opengl 2 --mode immediate)
