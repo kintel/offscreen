@@ -1,5 +1,7 @@
 #include "OffscreenContextWGL.h"
 
+#ifdef _WIN32
+
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -49,12 +51,13 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t
 {
   auto ctx = std::make_shared<OffscreenContextWGL>(width, height);
 
-  WNDCLASSEX wndClass = {};
-  wndClass.cbSize = sizeof(WNDCLASSEX);
-  wndClass.style = CS_OWNDC;
-  wndClass.lpfnWndProc = &DefWindowProc;
-  wndClass.hInstance = GetModuleHandle(nullptr);
-  wndClass.lpszClassName = "OffscreenClass";
+  WNDCLASSEX wndClass = {
+    .cbSize = sizeof(WNDCLASSEX),
+    .style = CS_OWNDC,
+    .lpfnWndProc = &DefWindowProc,
+    .hInstance = GetModuleHandle(nullptr),
+    .lpszClassName = "OffscreenClass"
+  };
   // FIXME: Check for ERROR_CLASS_ALREADY_EXISTS ?
   RegisterClassEx(&wndClass);
   // Create the window. Position and size it.
@@ -71,15 +74,16 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t
     return nullptr;
   }
 
-  PIXELFORMATDESCRIPTOR pixelFormatDesc = {};
-  pixelFormatDesc.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-  pixelFormatDesc.nVersion = 1;
-  // FIXME: Can we remove PFD_DOUBLEBUFFER for offscreen rendering?
-  pixelFormatDesc.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-  pixelFormatDesc.iPixelType = PFD_TYPE_RGBA;
-  pixelFormatDesc.cColorBits = 32;
-  pixelFormatDesc.cDepthBits = 24;
-  pixelFormatDesc.cStencilBits = 8;
+  PIXELFORMATDESCRIPTOR pixelFormatDesc = {
+    .nSize = sizeof(PIXELFORMATDESCRIPTOR),
+    .nVersion = 1,
+    // FIXME: Can we remove PFD_DOUBLEBUFFER for offscreen rendering?
+    .dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+    .iPixelType = PFD_TYPE_RGBA,
+    .cColorBits = 32,
+    .cDepthBits = 24,
+    .cStencilBits = 8
+  };
 
   int pixelFormat = ChoosePixelFormat(ctx->devContext, &pixelFormatDesc);
   if (!pixelFormat) {
@@ -132,5 +136,15 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t
   }
 
   return ctx;
-
 }
+
+#else // !_WIN32
+
+std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t /*width*/, size_t /*height*/,
+							    size_t /*majorGLVersion*/, size_t /*minorGLVersion*/, bool /*compatibilityProfile*/)
+{
+  return nullptr;
+}
+
+#endif // _WIN32
+
