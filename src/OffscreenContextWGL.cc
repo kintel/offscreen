@@ -1,7 +1,5 @@
 #include "OffscreenContextWGL.h"
 
-#ifdef _WIN32
-
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -138,13 +136,4 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t width, size_t
   return ctx;
 }
 
-#else // !_WIN32
-
-std::shared_ptr<OffscreenContext> CreateOffscreenContextWGL(size_t /*width*/, size_t /*height*/,
-							    size_t /*majorGLVersion*/, size_t /*minorGLVersion*/, bool /*compatibilityProfile*/)
-{
-  return nullptr;
-}
-
-#endif // _WIN32
 
