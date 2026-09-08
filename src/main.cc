@@ -1,9 +1,12 @@
 #include <algorithm>
-#include <numeric>
+#include <ctime>
+#include <functional>
 #include <iostream>
-#include <locale>
-#include <sstream>
 #include <iterator>
+#include <locale>
+#include <numeric>
+#include <sstream>
+
 
 #ifdef USE_GLAD
 #define GLAD_GL_IMPLEMENTATION
@@ -79,13 +82,24 @@ int main(int argc, char *argv[])
   bool argVerbose = false;
   bool argPrintHelp = false;
 
-  std::vector<std::string> contextProviders = {"egl", "cgl", "nsopengl", "wgl", "nullgl"};
+  std::vector<std::string> contextProviders = {"nullgl"};
+#ifdef __APPLE__
+  contextProviders.push_back("cgl");
+  contextProviders.push_back("nsopengl");
+#endif
+#if HAS_EGL
+  contextProviders.push_back("egl");
+#endif
 #ifdef ENABLE_GLX
   contextProviders.push_back("glx");
+#endif
+#ifdef _WIN32
+  contextProviders.push_back("wgl");
 #endif
 #ifdef ENABLE_GLFW
   contextProviders.push_back("glfw");
 #endif
+
 
   std::string joinedProviders = std::accumulate(contextProviders.begin(), contextProviders.end(), std::string(), 
     [](const auto &x, const auto &y) { return x.empty() ? y : x + " | " + y; });
@@ -170,10 +184,12 @@ int main(int argc, char *argv[])
     .majorGLVersion = requestMajor,
     .minorGLVersion = requestMinor,
     .gles = requestGLES,
-    .compatibilityProfile = argProfile == "compatibility",
+    .compatibilityProfile = (argProfile == "compatibility"),
     .gpu = argGPU,
     .invisible = argInvisible,
   };
+
+
   ctx = OffscreenContextFactory::create(argContextProvider, attrib);
   if (!ctx) {
     std::cerr << "Error: Unable to create GL context" << std::endl;

@@ -54,7 +54,7 @@ bool checkFBOStatus() {
 }  // namespace
 
 std::unique_ptr<FBO> createFBO(int width, int height) {
-  if (hasGLExtension(ARB_framebuffer_object)) {
+  if (hasGLVersion3() || hasGLESVersion2() || hasGLExtension(ARB_framebuffer_object)) {
     return std::make_unique<FBO>(width, height, /*useEXT*/ false);
   } else if (hasGLExtension(EXT_framebuffer_object)) {
     return std::make_unique<FBO>(width, height, /*useEXT*/ true);
@@ -63,6 +63,8 @@ std::unique_ptr<FBO> createFBO(int width, int height) {
     return nullptr;
   }
 }
+
+
 
 FBO::FBO(int width, int height, bool useEXT) : width_(width), height_(height), use_ext_(useEXT) {
   // Generate and bind FBO

@@ -1,5 +1,7 @@
 #include "system-gl.h"
 
+#include <cstdio>
+#include <cstring>
 #include <set>
 #include <string>
 #include <sstream>
@@ -7,21 +9,30 @@
 namespace {
 
 std::set<std::string> glExtensions;
+int glMajorVersion = 0;
+bool glIsGLES = false;
 
+void queryGLVersionIfNeeded() {
+  if (glMajorVersion > 0) return;
+  const char *v = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+  if (!v) return;
+  if (std::strncmp(v, "OpenGL ES ", 10) == 0) {
+    glIsGLES = true;
+    v += 10;
+  }
+  std::sscanf(v, "%d", &glMajorVersion);
 }
+
+} // namespace
 
 #ifndef USE_GLAD
 
 void initGLExtensions(int major, int minor, bool gles)
 {
   glExtensions.clear();
-  // Framebuffer Objects were promoted to core functionality in OpenGL 3.0 and GLES 2.0.
-  // Core Profile drivers (e.g. macOS Core Profile, Mesa) do not list promoted core features
-  // in the GL_EXTENSIONS string list, so we explicitly insert GL_ARB_framebuffer_object here
-  // to maintain compatibility with hasGLExtension(ARB_framebuffer_object) checks in non-GLAD builds.
-  if (major >= 3 || (gles && major >= 2)) {
-    glExtensions.insert("GL_ARB_framebuffer_object");
-  }
+  glMajorVersion = major;
+  glIsGLES = gles;
+
   if (major == 2 && !gles) {
     const char *extensions = reinterpret_cast<const char *>(glGetString(GL_EXTENSIONS));
     if (extensions) {
@@ -44,10 +55,22 @@ void initGLExtensions(int major, int minor, bool gles)
   }
 }
 
-
 bool lookupGLExtension(const char *ext)
 {
   return glExtensions.find(ext) != glExtensions.end();
 }
 
+bool hasGLVersion3()
+{
+  queryGLVersionIfNeeded();
+  return !glIsGLES && glMajorVersion >= 3;
+}
+
+bool hasGLESVersion2()
+{
+  queryGLVersionIfNeeded();
+  return glIsGLES && glMajorVersion >= 2;
+}
+
 #endif
+
