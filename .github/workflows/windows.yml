@@ -1,0 +1,52 @@
+name: Windows
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      enable_ssh:
+        type: boolean
+        description: 'Enable ssh'
+        required: false
+        default: false
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: 'recursive'
+
+    - name: Install Mesa
+      uses: ssciwr/setup-mesa-dist-win@v3
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.enable_ssh }}
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v6
+      if: ${{ always() }}
+      with:
+        name: Test Results (Windows)
+        path: |
+          build/Testing/Temporary/LastTest.log
+          build/out*.png

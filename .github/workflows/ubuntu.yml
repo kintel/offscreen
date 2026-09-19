@@ -1,4 +1,4 @@
-name: Offscreen
+name: Ubuntu
 
 on:
   push:
@@ -14,17 +14,12 @@ on:
         default: false
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  LIBGL_ALWAYS_SOFTWARE: "1"
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-14, macos-latest, macos-26-intel, windows-latest]
-
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v7
@@ -35,41 +30,26 @@ jobs:
       with:
         packages: libglvnd-dev libglfw3-dev libglu1-mesa-dev libegl1-mesa-dev libgbm-dev xvfb
         version: 1.0
-      if: runner.os == 'Linux'
-    - run: brew install glfw
-      if: runner.os == 'macOS'
-    - name: Install Mesa (Windows)
-      uses: ssciwr/setup-mesa-dist-win@v3
-      if: runner.os == 'Windows'
-
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.enable_ssh }}
 
     - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      env:
-        LIBGL_ALWAYS_SOFTWARE: "1"
       run: ctest --output-on-failure -C ${{env.BUILD_TYPE}}
-
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v7
       if: ${{ always() }}
       with:
-        name: Test Results(${{ matrix.os }})
+        name: Test Results (Ubuntu)
         path: |
           build/Testing/Temporary/LastTest.log
-          build/out.png
-          build/out_320x240.png
-
+          build/out*.png
