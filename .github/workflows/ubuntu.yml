@@ -1,0 +1,55 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [ "master", "tests" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      enable_ssh:
+        type: boolean
+        description: 'Enable ssh'
+        required: false
+        default: false
+
+env:
+  BUILD_TYPE: Release
+  LIBGL_ALWAYS_SOFTWARE: "1"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        submodules: 'recursive'
+
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libglvnd-dev libglfw3-dev libglu1-mesa-dev libegl1-mesa-dev libgbm-dev xvfb
+        version: 1.0
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.enable_ssh }}
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v7
+      if: ${{ always() }}
+      with:
+        name: Test Results (Ubuntu)
+        path: |
+          build/Testing/Temporary/LastTest.log
+          build/out*.png
