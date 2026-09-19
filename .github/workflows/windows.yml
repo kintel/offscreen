@@ -21,7 +21,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         submodules: 'recursive'
 
@@ -43,7 +43,7 @@ jobs:
       run: ctest --output-on-failure -C ${{env.BUILD_TYPE}}
 
     - name: Upload Test Results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       if: ${{ always() }}
       with:
         name: Test Results (Windows)
