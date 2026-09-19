@@ -46,7 +46,8 @@ jobs:
       working-directory: /__w/offscreen/offscreen/build
       env:
         LIBGL_ALWAYS_SOFTWARE: "1"
-      run: xvfb-run ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+      run: ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+
 
     - name: Upload Test Results
       uses: actions/upload-artifact@v7

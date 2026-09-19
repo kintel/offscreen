@@ -194,15 +194,22 @@ if(HAS_EGL)
   set_tests_properties(check_egl_file_exists PROPERTIES DEPENDS egl_save_framebuffer)
 endif()
 
+find_program(XVFB_RUN xvfb-run)
+
 if(HAS_GLX)
-  add_test(NAME glx_opengl2_immediate COMMAND offscreen --context glx --opengl 2 --mode immediate)
-  add_test(NAME glx_opengl2_modern COMMAND offscreen --context glx --opengl 2 --mode modern)
-  add_test(NAME glx_opengl3_core COMMAND offscreen --context glx --opengl 3.3 --profile core)
-  add_test(NAME glx_opengl3_compat COMMAND offscreen --context glx --opengl 3.3 --profile compatibility)
-  add_test(NAME glx_save_framebuffer COMMAND offscreen --context glx -o out_glx.png)
+  set(GLX_TEST_RUNNER "")
+  if(XVFB_RUN)
+    set(GLX_TEST_RUNNER ${XVFB_RUN} -a)
+  endif()
+  add_test(NAME glx_opengl2_immediate COMMAND ${GLX_TEST_RUNNER} offscreen --context glx --opengl 2 --mode immediate)
+  add_test(NAME glx_opengl2_modern COMMAND ${GLX_TEST_RUNNER} offscreen --context glx --opengl 2 --mode modern)
+  add_test(NAME glx_opengl3_core COMMAND ${GLX_TEST_RUNNER} offscreen --context glx --opengl 3.3 --profile core)
+  add_test(NAME glx_opengl3_compat COMMAND ${GLX_TEST_RUNNER} offscreen --context glx --opengl 3.3 --profile compatibility)
+  add_test(NAME glx_save_framebuffer COMMAND ${GLX_TEST_RUNNER} offscreen --context glx -o out_glx.png)
   add_test(NAME check_glx_file_exists COMMAND ${CMAKE_COMMAND} -E cat out_glx.png)
   set_tests_properties(check_glx_file_exists PROPERTIES DEPENDS glx_save_framebuffer)
 endif()
+
 
 
 if(WIN32)
