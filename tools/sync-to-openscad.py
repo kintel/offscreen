@@ -55,13 +55,18 @@ def find_openscad_dir(given_path=None):
         candidates.extend([
             repo_root.parent / "OpenSCAD" / "openscad",
             repo_root.parent / "openscad",
+            repo_root.parent.parent / "OpenSCAD" / "openscad",
+            repo_root.parent.parent / "openscad",
             Path.cwd().parent / "openscad",
+            Path.cwd().parent.parent / "openscad",
+            Path.cwd().parent.parent / "OpenSCAD" / "openscad",
         ])
 
     for c in candidates:
         if c.exists() and (c / "src" / "glview").is_dir():
             return c.resolve()
     return None
+
 
 def transform_content(content: str) -> str:
     for pattern, replacement in INCLUDE_REPLACEMENTS:
