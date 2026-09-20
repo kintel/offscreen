@@ -114,7 +114,7 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 
 ## OpenSCAD Integration & Synchronization
 
-The cross-platform offscreen OpenGL rendering components developed in this repository (`OffscreenContext*`, `OpenGLContext*`, `FBO`, etc.) are used by [OpenSCAD](https://github.com/openscad/openscad) in its `src/glview/` subsystem.
+The cross-platform offscreen OpenGL rendering components developed in this repository (`OffscreenContext*`, `OpenGLContext*`, `fbo`, etc.) are used by [OpenSCAD](https://github.com/openscad/openscad) in its `src/glview/` subsystem.
 
 An automated synchronization script is provided in `tools/sync-to-openscad.sh` (backed by `tools/sync-to-openscad.py`) to keep the implementations aligned.
 
@@ -139,7 +139,7 @@ When syncing into OpenSCAD, the script automatically applies the following inclu
 * `#include "OffscreenContext*.h"` $\rightarrow$ `#include "glview/OffscreenContext*.h"`
 * `#include "OpenGLContext.h"` $\rightarrow$ `#include "glview/OpenGLContext.h"`
 * `#include "system-gl.h"` $\rightarrow$ `#include "glview/system-gl.h"`
-* `#include "FBO.h"` $\rightarrow$ `#include "glview/fbo.h"` (and renames `FBO.h` / `FBO.cc` $\rightarrow$ `fbo.h` / `fbo.cc`)
+* `#include "fbo.h"` $\rightarrow$ `#include "glview/fbo.h"` (and `fbo.h` / `fbo.cc`)
 * `#include "scope_guard.hpp"` $\rightarrow$ `#include "utils/scope_guard.hpp"`
 
 

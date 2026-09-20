@@ -27,8 +27,8 @@ DEFAULT_FILE_MAP = {
     "OffscreenContextNULL.cc": "src/glview/OffscreenContextNULL.cc",
     "OpenGLContext.h": "src/glview/OpenGLContext.h",
     "OpenGLContext.cc": "src/glview/OpenGLContext.cc",
-    "FBO.h": "src/glview/fbo.h",
-    "FBO.cc": "src/glview/fbo.cc",
+    "fbo.h": "src/glview/fbo.h",
+    "fbo.cc": "src/glview/fbo.cc",
 }
 
 INCLUDE_REPLACEMENTS = [
@@ -41,7 +41,7 @@ INCLUDE_REPLACEMENTS = [
     (re.compile(r'#include "OffscreenContextFactory\.h"'), '#include "glview/OffscreenContextFactory.h"'),
     (re.compile(r'#include "OpenGLContext\.h"'), '#include "glview/OpenGLContext.h"'),
     (re.compile(r'#include "system-gl\.h"'), '#include "glview/system-gl.h"'),
-    (re.compile(r'#include "FBO\.h"'), '#include "glview/fbo.h"'),
+    (re.compile(r'#include "fbo\.h"'), '#include "glview/fbo.h"'),
     (re.compile(r'#include "scope_guard\.hpp"'), '#include "utils/scope_guard.hpp"'),
 ]
 

@@ -1,4 +1,4 @@
-#include "FBO.h"
+#include "fbo.h"
 
 #include <cstddef>
 #include <iostream>

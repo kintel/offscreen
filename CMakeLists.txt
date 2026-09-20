@@ -132,7 +132,7 @@ set(SRCS
     src/OffscreenContext.cc
     src/OffscreenContextNULL.cc
     src/OffscreenContextFactory.cc
-    src/FBO.cc
+    src/fbo.cc
     src/render_immediate.cc
     src/render_modern_ogl2.cc
     src/render_modern_ogl3.cc

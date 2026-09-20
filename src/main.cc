@@ -21,7 +21,7 @@
 
 #include "CommandLine.h"
 #include "OffscreenContextFactory.h"
-#include "FBO.h"
+#include "fbo.h"
 #include "state.h"
 #include "render_immediate.h"
 #include "render_modern_ogl2.h"
