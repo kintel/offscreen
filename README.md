@@ -112,18 +112,52 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 ./offscreen --gles 2
 ```
 
-## Running Tests
+## OpenSCAD Integration & Synchronization
 
-First, ensure you have built the project as described in the 'Build & run' section above.
+The cross-platform offscreen OpenGL rendering components developed in this repository (`OffscreenContext*`, `OpenGLContext*`, `FBO`, etc.) are used by [OpenSCAD](https://github.com/openscad/openscad) in its `src/glview/` subsystem.
 
-Tests are run from the build directory using `ctest -C <BUILD_TYPE>`. For example, to run tests for the Release build type:
+An automated synchronization script is provided in `tools/sync-to-openscad.sh` (backed by `tools/sync-to-openscad.py`) to keep the implementations aligned.
+
+### How to Synchronize with OpenSCAD
 
 ```bash
-ctest -C Release
+# 1. Preview changes without modifying files (dry run with diff):
+./tools/sync-to-openscad.sh --diff /path/to/openscad
+
+# 2. Perform the sync and format with clang-format:
+./tools/sync-to-openscad.sh --format /path/to/openscad
+
+# 3. Synchronize only specific files (e.g. after updating WGL):
+./tools/sync-to-openscad.sh --format --files OffscreenContextWGL.h OffscreenContextWGL.cc /path/to/openscad
 ```
 
+*(If `/path/to/openscad` is omitted, the script automatically searches common sibling directories like `../openscad` or `../OpenSCAD/openscad`).*
 
-## Context Notes
+### Automated Include Path Transformations
+
+When syncing into OpenSCAD, the script automatically applies the following include path adjustments:
+* `#include "OffscreenContext*.h"` $\rightarrow$ `#include "glview/OffscreenContext*.h"`
+* `#include "OpenGLContext.h"` $\rightarrow$ `#include "glview/OpenGLContext.h"`
+* `#include "system-gl.h"` $\rightarrow$ `#include "glview/system-gl.h"`
+* `#include "FBO.h"` $\rightarrow$ `#include "glview/fbo.h"` (and renames `FBO.h` / `FBO.cc` $\rightarrow$ `fbo.h` / `fbo.cc`)
+* `#include "scope_guard.hpp"` $\rightarrow$ `#include "utils/scope_guard.hpp"`
+
+
+## Running Tests
+
+First, build the project as described in the 'Build & run' section above.
+
+Tests are run from the build directory using `ctest --output-on-failure -C <BUILD_TYPE>`. For example, to run tests for the Release build:
+
+```bash
+ctest --output-on-failure -C Release
+```
+
+* **Linux**: Tests both headless **EGL** (which runs directly on the host without an X server) and **GLX** (which automatically uses `xvfb-run -a` when available).
+* **macOS**: Tests both **CGL** and **NSOpenGL** across OpenGL 2.1 (immediate/modern) and Core 3.2+ profiles.
+* **Windows**: Tests modern **WGL** (OpenGL 2.1 immediate/modern, OpenGL 3.3 Core & Compatibility profiles). On CI without a physical GPU, tests run via Mesa llvmpipe.
+* **NULLGL**: A mock/stub context (`--context nullgl`) is tested on all platforms for headless non-GPU environments.
+
 
 ### Linux
 
