@@ -15,7 +15,8 @@
 #endif
 
 #include "OffscreenContext.h"
-#include "scope_guard.hpp"
+#include "utils/scope_guard.hpp"
+
 
 class OffscreenContextWGL : public OffscreenContext {
 

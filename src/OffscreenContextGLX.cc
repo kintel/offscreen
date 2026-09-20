@@ -11,7 +11,8 @@
 #include <glad/glx.h>
 
 #include "OffscreenContext.h"
-#include "scope_guard.hpp"
+#include "utils/scope_guard.hpp"
+
 
 namespace {
 

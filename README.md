@@ -139,8 +139,8 @@ When syncing into OpenSCAD, the script automatically applies the following inclu
 * `#include "OffscreenContext*.h"` $\rightarrow$ `#include "glview/OffscreenContext*.h"`
 * `#include "OpenGLContext.h"` $\rightarrow$ `#include "glview/OpenGLContext.h"`
 * `#include "system-gl.h"` $\rightarrow$ `#include "glview/system-gl.h"`
-* `#include "fbo.h"` $\rightarrow$ `#include "glview/fbo.h"` (and `fbo.h` / `fbo.cc`)
-* `#include "scope_guard.hpp"` $\rightarrow$ `#include "utils/scope_guard.hpp"`
+* `#include "fbo.h"` $\rightarrow$ `#include "glview/fbo.h"`
+
 
 
 ## Running Tests
