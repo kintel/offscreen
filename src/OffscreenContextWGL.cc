@@ -1,5 +1,6 @@
 #include "OffscreenContextWGL.h"
 
+#undef NOGDI
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -7,12 +8,14 @@
 #include <string>
 
 #include <windows.h>
+#include <wingdi.h>
 #ifdef USE_GLAD
 #define GLAD_WGL
 #define GLAD_WGL_IMPLEMENTATION
 #include <glad/wgl.h>
 #include <glad/gl.h>
 #endif
+
 
 #include "OffscreenContext.h"
 #include "utils/scope_guard.hpp"

@@ -10,8 +10,8 @@
 
 #ifdef USE_GLAD
 #define GLAD_GL_IMPLEMENTATION
-#define GLAD_EGL_IMPLEMENTATION
 #endif
+
 #include "system-gl.h"
 
 #ifdef ENABLE_GLFW
