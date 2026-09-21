@@ -68,6 +68,32 @@ def find_openscad_dir(given_path=None):
     return None
 
 
+def find_clang_format():
+    found = shutil.which("clang-format")
+    if found:
+        return found
+    for candidate in ["/opt/homebrew/bin/clang-format", "/usr/local/bin/clang-format"]:
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            return candidate
+    return None
+
+def format_code(clang_format, content: str, filename: str, cwd: Path) -> str:
+    if not clang_format:
+        return content
+    proc = subprocess.run(
+        [clang_format, f"--assume-filename={filename}"],
+        input=content,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        cwd=str(cwd),
+        check=False,
+    )
+    if proc.returncode == 0:
+        return proc.stdout
+    return content
+
+
 def transform_content(content: str) -> str:
     for pattern, replacement in INCLUDE_REPLACEMENTS:
         content = pattern.sub(replacement, content)
@@ -90,10 +116,18 @@ def main():
         print("Error: Could not locate OpenSCAD repository root.", file=sys.stderr)
         sys.exit(1)
 
+    clang_format = None
+    if args.format:
+        clang_format = find_clang_format()
+        if not clang_format:
+            print("Error: --format requested, but 'clang-format' could not be found.", file=sys.stderr)
+            sys.exit(1)
+
     print(f"Source repository: {repo_root}")
     print(f"Target OpenSCAD:   {openscad_root}")
+    if clang_format:
+        print(f"clang-format:      {clang_format}")
 
-    clang_format = shutil.which("clang-format") if args.format else None
     files_to_sync = DEFAULT_FILE_MAP
     if args.files:
         files_to_sync = {k: v for k, v in DEFAULT_FILE_MAP.items() if k in args.files}
@@ -107,6 +141,9 @@ def main():
 
         with open(src_path, "r", encoding="utf-8") as f:
             new_content = transform_content(f.read())
+
+        if clang_format and dst_path.suffix in [".cc", ".h", ".mm"]:
+            new_content = format_code(clang_format, new_content, dst_rel, openscad_root)
 
         current_dst = ""
         if dst_path.exists():
@@ -134,10 +171,9 @@ def main():
             dst_path.parent.mkdir(parents=True, exist_ok=True)
             with open(dst_path, "w", encoding="utf-8") as f:
                 f.write(new_content)
-            if clang_format and dst_path.suffix in [".cc", ".h", ".mm"]:
-                subprocess.run([clang_format, "-i", str(dst_path)], check=False)
 
     print(f"Sync complete: {synced} updated, {identical} identical.")
+
 
 if __name__ == "__main__":
     main()
