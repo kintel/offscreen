@@ -10,7 +10,11 @@
 
 #ifdef USE_GLAD
 #define GLAD_GL_IMPLEMENTATION
+#ifndef HAS_EGL
+#define GLAD_EGL_IMPLEMENTATION
 #endif
+#endif
+
 
 #include "system-gl.h"
 

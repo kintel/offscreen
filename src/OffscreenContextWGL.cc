@@ -28,7 +28,7 @@ public:
   HDC devContext = nullptr;
   HGLRC renderContext = nullptr;
 
-  OffscreenContextWGL(int width, int height) : OffscreenContext(width, height) {}
+  OffscreenContextWGL(uint32_t width, uint32_t height) : OffscreenContext(width, height) {}
   ~OffscreenContextWGL() {
     wglMakeCurrent(nullptr, nullptr);
     if (this->renderContext) wglDeleteContext(this->renderContext);
