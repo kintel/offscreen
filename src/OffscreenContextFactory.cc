@@ -1,8 +1,11 @@
 #include "OffscreenContextFactory.h"
 
 #include <iostream>
+#include <string>
 
 #include "OffscreenContextNULL.h"
+#include "utils/printutils.h"
+
 
 #ifdef __APPLE__
 #include "OffscreenContextNSOpenGL.h"
@@ -43,6 +46,11 @@ const char *defaultProvider() {
 }
 
 std::shared_ptr<OpenGLContext> create(const std::string& provider, const ContextAttributes& attrib) {
+  PRINTDB("Creating OpenGL context with the %1s provider:", provider);
+  PRINTDB("  Size: %d x %d", attrib.width % attrib.height);
+  PRINTDB("  Version: %s %d.%d %s",
+          (attrib.gles ? "OpenGL ES" : "OpenGL") % attrib.majorGLVersion % attrib.minorGLVersion %
+            (attrib.compatibilityProfile ? "(compatibility profile requested)" : ""));
 
   if (provider == "nullgl" || provider == "null") {
     return CreateOffscreenContextNULL();
@@ -83,9 +91,10 @@ std::shared_ptr<OpenGLContext> create(const std::string& provider, const Context
 			     attrib.invisible);
   }
 #endif
-  std::cerr << "Context provider '" << provider << "' not found" << std::endl;
+  LOG("GL context provider '%1$s' not found", provider);
   return {};
 }
+
 
 }  // namespace OffscreenContextFactory
 
