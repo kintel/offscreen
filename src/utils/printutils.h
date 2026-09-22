@@ -130,10 +130,16 @@ inline void logImpl(message_group group, const std::string& msg) {
 
 }  // namespace offscreen_log
 
+#define PRINTD(_arg)                                                           \
+  do {                                                                         \
+    std::cerr << (_arg) << std::endl;                                          \
+  } while (0)
+
 #define PRINTDB(_fmt, _arg)                                                    \
   do {                                                                         \
-    std::cout << (offscreen_log::Formatter(_fmt) % _arg).str() << std::endl;   \
+    std::cerr << (offscreen_log::Formatter(_fmt) % _arg).str() << std::endl;   \
   } while (0)
+
 
 inline void LOG(message_group group, const std::string& msg) {
   offscreen_log::logImpl(group, msg);
