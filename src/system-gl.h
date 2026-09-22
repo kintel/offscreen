@@ -20,15 +20,36 @@
 #include <GL/glu.h>
 #endif
 
+#include "utils/printutils.h"
+
 namespace {
 
-void glCheck(const char *stmt, const char *file, int line)
+// Returns true on OK, false on error
+[[maybe_unused]] bool glCheck(const char *stmt, const char *file, int line)
 {
-  if (GLenum err = glGetError(); err != GL_NO_ERROR) {
-    std::cerr << "OpenGL error: " << gluErrorString(err)
-              << " (" << err << ") in " << file << ":" << line << "\n"
-              << "              " << stmt << std::endl;
+  if (const auto err = glGetError(); err != GL_NO_ERROR) {
+    const char *errStr = reinterpret_cast<const char *>(gluErrorString(err));
+    LOG(message_group::Error,
+        "OpenGL error: %1$s (0x%2$04x) in %3$s:%4$d\n"
+        "              %5$s\n",
+        errStr ? errStr : "unknown", err, file, line, stmt);
+    return false;
   }
+  return true;
+}
+
+// Returns true on OK, false on error
+[[maybe_unused]] bool glCheckd(const char *stmt, const char *file, int line)
+{
+  if (const auto err = glGetError(); err != GL_NO_ERROR) {
+    const char *errStr = reinterpret_cast<const char *>(gluErrorString(err));
+    PRINTDB(
+      "OpenGL error: %s (0x%04x) in %s:%d\n"
+      "              %s\n",
+      (errStr ? errStr : "unknown") % err % file % line % stmt);
+    return false;
+  }
+  return true;
 }
 
 } // namespace
@@ -45,11 +66,25 @@ bool hasGLVersion3();
 bool hasGLESVersion2();
 #endif
 
+#define GL_CHECK(...) \
+  __VA_ARGS__;        \
+  glCheck(#__VA_ARGS__, __FILE__, __LINE__)
+
+#define IF_GL_CHECK(...) \
+  __VA_ARGS__;           \
+  if (!glCheck(#__VA_ARGS__, __FILE__, __LINE__))
+
+#define GL_CHECKD(...) \
+  __VA_ARGS__;         \
+  glCheckd(#__VA_ARGS__, __FILE__, __LINE__)
 
 #ifdef DEBUG
-  #define GL_CHECK(...) __VA_ARGS__; glCheck(#__VA_ARGS__, __FILE__, __LINE__)
+#define GL_DEBUG_CHECKD(...) \
+  __VA_ARGS__;               \
+  glCheckd(#__VA_ARGS__, __FILE__, __LINE__)
 #else
-  #define GL_CHECK(...) __VA_ARGS__
+#define GL_DEBUG_CHECKD(...) __VA_ARGS__
 #endif
+
 
 
