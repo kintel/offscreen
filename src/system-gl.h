@@ -25,7 +25,7 @@
 namespace {
 
 // Returns true on OK, false on error
-[[maybe_unused]] bool glCheck(const char *stmt, const char *file, int line)
+[[maybe_unused]] bool glCheck(const char *stmt = "", const char *file = "", int line = 0)
 {
   if (const auto err = glGetError(); err != GL_NO_ERROR) {
     const char *errStr = reinterpret_cast<const char *>(gluErrorString(err));
@@ -38,8 +38,10 @@ namespace {
   return true;
 }
 
+[[maybe_unused]] inline bool glCheck() { return glCheck("", "", 0); }
+
 // Returns true on OK, false on error
-[[maybe_unused]] bool glCheckd(const char *stmt, const char *file, int line)
+[[maybe_unused]] bool glCheckd(const char *stmt = "", const char *file = "", int line = 0)
 {
   if (const auto err = glGetError(); err != GL_NO_ERROR) {
     const char *errStr = reinterpret_cast<const char *>(gluErrorString(err));
@@ -51,6 +53,9 @@ namespace {
   }
   return true;
 }
+
+[[maybe_unused]] inline bool glCheckd() { return glCheckd("", "", 0); }
+
 
 } // namespace
 
