@@ -99,7 +99,6 @@ public:
   void findPlatformDisplay() {
     std::set<std::string> clientExtensions;
     std::string ext = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
-    std::cout << ext << std::endl;
     std::istringstream iss(ext);
     while (iss) {
       std::string extension;
@@ -111,7 +110,6 @@ public:
       return;
     }
 
-    std::cout << "Trying Platform display..." << std::endl;
     if (eglQueryDevicesEXT && eglGetPlatformDisplayEXT) {
       EGLDeviceEXT eglDevice;
       EGLint numDevices = 0;
@@ -122,6 +120,7 @@ public:
       }
     }
   }
+
 
   void createSurface(const EGLConfig& config,size_t width, size_t height) {
     if (this->gbmDevice) {
@@ -192,7 +191,7 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextEGL(size_t width, size_t
 
   if (!drmNode.empty()) {
 #ifdef HAS_GBM
-    std::cout << "Using GBM..." << std::endl;
+    PRINTDB("Using GBM...");
     ctx->getDisplayFromDrmNode(drmNode);
 #endif
   } else {
@@ -200,7 +199,6 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextEGL(size_t width, size_t
     // If so, we also have to try initializing it
     ctx->findPlatformDisplay();
     if (ctx->eglDisplay == EGL_NO_DISPLAY) {
-      std::cout << "Trying default EGL display..." << std::endl;
       ctx->eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     }
   }
@@ -227,17 +225,8 @@ std::shared_ptr<OffscreenContext> CreateOffscreenContextEGL(size_t width, size_t
   PRINTDB("GLAD: Loaded EGL %d.%d after reload",
           GLAD_VERSION_MAJOR(eglVersion) % GLAD_VERSION_MINOR(eglVersion));
 
-#ifdef EGL_MESA_query_driver
-  if (eglGetDisplayDriverName) {
-    const char *name = eglGetDisplayDriverName(ctx->eglDisplay);
-    if (name) {
-      std::cout << "Got EGL display with driver name: " << name << std::endl;
-    }
-  }
-#endif
-
-
   EGLint numConfigs;
+
   EGLConfig config;
   bool gotConfig = eglChooseConfig(ctx->eglDisplay, configAttribs, &config, 1, &numConfigs);
   if (!gotConfig || numConfigs == 0) {
