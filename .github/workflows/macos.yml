@@ -37,13 +37,11 @@ jobs:
       uses: actions/cache@v4
       with:
         path: dependencies/mesa_install
-        key: osmesa-24.3.4-${{ matrix.os }}
+        key: osmesa-24.3.4-${{ matrix.os }}-${{ hashFiles('tools/build-osmesa.sh') }}
 
     - name: Build OSMesa
       if: steps.cache-osmesa.outputs.cache-hit != 'true'
-      run: |
-        python3 -m pip install mako pyyaml packaging
-        ./tools/build-osmesa.sh
+      run: ./tools/build-osmesa.sh
 
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3

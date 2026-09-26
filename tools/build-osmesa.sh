@@ -27,20 +27,39 @@ if command -v brew >/dev/null 2>&1; then
   [ -n "${LLVM_PREFIX}" ] && export PATH="${LLVM_PREFIX}/bin:${PATH}"
   [ -n "${BISON_PREFIX}" ] && export PATH="${BISON_PREFIX}/bin:${PATH}"
   [ -n "${HOMEBREW_PREFIX}" ] && export LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${LLVM_PREFIX}/lib:${LIBRARY_PATH:-}"
+  [ -n "${HOMEBREW_PREFIX}" ] && export LDFLAGS="-L${HOMEBREW_PREFIX}/lib -L${LLVM_PREFIX}/lib ${LDFLAGS:-}"
 fi
 
-# Ensure Python virtual environment with mako/pyyaml/packaging is in PATH
-if [ -d "${ROOT_DIR}/.venv" ]; then
-  export PATH="${ROOT_DIR}/.venv/bin:${PATH}"
+# Set SDKROOT on macOS if available
+if [ -z "${SDKROOT:-}" ] && command -v xcrun >/dev/null 2>&1; then
+  export SDKROOT="$(xcrun --show-sdk-path)"
+fi
+
+# Ensure Python dependencies (mako, pyyaml, packaging) are available
+VENV_DIR="${ROOT_DIR}/.venv"
+if ! python3 -c "import mako, yaml, packaging" >/dev/null 2>&1; then
+  echo "==> Installing Mesa build dependencies in Python virtual environment..."
+  if [ ! -d "${VENV_DIR}" ]; then
+    python3 -m venv "${VENV_DIR}" || true
+  fi
+  if [ -x "${VENV_DIR}/bin/pip" ]; then
+    "${VENV_DIR}/bin/pip" install mako pyyaml packaging
+    export PATH="${VENV_DIR}/bin:${PATH}"
+  else
+    python3 -m pip install --break-system-packages mako pyyaml packaging || true
+  fi
+elif [ -d "${VENV_DIR}" ]; then
+  export PATH="${VENV_DIR}/bin:${PATH}"
 fi
 
 # Download or clone Mesa source if not present
 if [ ! -d "${MESA_SRC}" ]; then
   echo "==> Fetching Mesa ${MESA_VERSION}..."
   TARBALL="${DEPS_DIR}/mesa-${MESA_VERSION}.tar.xz"
-  if curl -f -L -o "${TARBALL}" "https://archive.mesa3d.org/mesa-${MESA_VERSION}.tar.xz"; then
+  if curl -f -L --retry 3 --connect-timeout 30 -o "${TARBALL}" "https://archive.mesa3d.org/mesa-${MESA_VERSION}.tar.xz"; then
     echo "==> Extracting ${TARBALL}..."
     tar -xf "${TARBALL}" -C "${DEPS_DIR}"
+    rm -rf "${MESA_SRC}"
     mv "${DEPS_DIR}/mesa-${MESA_VERSION}" "${MESA_SRC}"
     rm -f "${TARBALL}"
   else
@@ -81,4 +100,5 @@ echo "==> OSMesa build complete!"
 echo "Installed in: ${MESA_INSTALL}"
 ls -la "${MESA_INSTALL}/lib"
 ls -la "${MESA_INSTALL}/include/GL"
+
 
