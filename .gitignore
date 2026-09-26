@@ -7,3 +7,6 @@ offscreen
 offscreen.exe
 .vscode/
 build/
+dependencies/
+.venv/
+

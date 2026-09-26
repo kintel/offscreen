@@ -23,13 +23,26 @@ option(USE_GLAD "Use GLAD for OpenGL function wrangling" ${USE_GLAD_DEFAULT})
 option(ENABLE_GLFW "Enable on-screen rendering using glfw" ON)
 option(ENABLE_EGL "Enable EGL offscreen context" ON)
 option(ENABLE_GLX "Enable GLX offscreen context" ON)
+option(ENABLE_OSMESA "Enable OSMesa offscreen rendering" ON)
 
 set(HAS_GLVND FALSE)
 set(HAS_GLX FALSE)
 set(HAS_EGL FALSE)
+set(HAS_OSMESA FALSE)
 set(HAS_CGL FALSE)
 set(HAS_NSOPENGL FALSE)
 set(HAS_WGL FALSE)
+
+if(ENABLE_OSMESA)
+  find_package(OSMesa)
+  if(OSMESA_FOUND)
+    set(HAS_OSMESA TRUE)
+    target_link_libraries(offscreen OSMesa::OSMesa)
+    target_compile_definitions(offscreen PRIVATE HAS_OSMESA)
+    set(SRCS_OSMESA src/OffscreenContextOSMesa.cc)
+    set(USE_GLAD ON)
+  endif()
+endif()
 
 if(USE_GLAD)
   target_compile_definitions(offscreen PRIVATE USE_GLAD)
@@ -147,6 +160,7 @@ set(SRCS
     ${SRCS_GLX}
     ${SRCS_APPLE}
     ${SRCS_WINDOWS}
+    ${SRCS_OSMESA}
     )
 target_sources(offscreen PRIVATE ${SRCS})
 target_include_directories(offscreen PUBLIC "${CMAKE_SOURCE_DIR}/src")
@@ -216,9 +230,6 @@ if(HAS_GLX)
   set_tests_properties(check_glx_file_exists PROPERTIES DEPENDS glx_save_framebuffer)
 endif()
 
-
-
-
 if(WIN32)
   add_test(NAME wgl_opengl2_immediate COMMAND offscreen --context wgl --opengl 2 --mode immediate)
   add_test(NAME wgl_opengl2_modern COMMAND offscreen --context wgl --opengl 2 --mode modern)
@@ -226,6 +237,16 @@ if(WIN32)
   add_test(NAME wgl_opengl3_compat COMMAND offscreen --context wgl --opengl 3.3 --profile compatibility)
 endif(WIN32)
 
+if(HAS_OSMESA)
+  add_test(NAME osmesa_opengl2_immediate COMMAND offscreen --context osmesa --opengl 2 --mode immediate)
+  add_test(NAME osmesa_opengl2_modern COMMAND offscreen --context osmesa --opengl 2 --mode modern)
+  add_test(NAME osmesa_opengl3.3_core COMMAND offscreen --context osmesa --opengl 3.3 --profile core)
+  add_test(NAME osmesa_opengl3.3_compat COMMAND offscreen --context osmesa --opengl 3.3 --profile compatibility)
+  add_test(NAME osmesa_opengl4.5_core COMMAND offscreen --context osmesa --opengl 4.5 --profile core)
+  add_test(NAME osmesa_save_framebuffer COMMAND offscreen --context osmesa -o out_osmesa.png)
+  add_test(NAME check_osmesa_file_exists COMMAND ${CMAKE_COMMAND} -E cat out_osmesa.png)
+  set_tests_properties(check_osmesa_file_exists PROPERTIES DEPENDS osmesa_save_framebuffer)
+endif(HAS_OSMESA)
 
 message(STATUS " ")
 message(STATUS "====================================")
@@ -237,6 +258,7 @@ message(STATUS "GLFW:                ${ENABLE_GLFW}")
 message(STATUS "Has GLVND:           ${HAS_GLVND}")
 message(STATUS "GLX:                 ${HAS_GLX}")
 message(STATUS "EGL:                 ${HAS_EGL}")
+message(STATUS "OSMesa:              ${HAS_OSMESA}")
 message(STATUS "CGL:                 ${HAS_CGL}")
 message(STATUS "NSOpenGL:            ${HAS_NSOPENGL}")
 message(STATUS "WGL:                 ${HAS_WGL}")
