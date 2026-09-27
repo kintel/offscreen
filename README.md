@@ -21,24 +21,23 @@ make
 
 * macOS
    * Defaults to non-wrangled OpenGL
-   * Supports: NSOpenGL, CGL
-   * OpenGL 2, OpenGL 4
+   * Supports: NSOpenGL, CGL, OSMesa (via Mesa llvmpipe)
+   * OpenGL 2, OpenGL 3.2-4.1 (Native), OpenGL 2.1-4.5 (OSMesa)
 * Linux
-   * Supports: EGL
+   * Supports: EGL, OSMesa
    * Supports multi-GPU
    * OpenGL 2-4
    * GLES2-3
 * Raspberry Pi
    * Only OpenGL 2 for now
 * Windows
-   * Supports: WGL
-   * OpenGL2-4
+   * Supports: WGL, OSMesa
+   * OpenGL 2-4
 
 ## TODO
 
 * Use EGL by default, and fall back to GLX. This is apparently needed in some places. Google it and look into it.
 * Qt-backed GL context
-* macOS: Look into "warning gl.h and gl3.h are both included"
 * Support forward-compatible contexts
 * Windows: Support GLES
 * WASM
@@ -56,6 +55,29 @@ make
 sudo apt install cmake libglfw3-dev libgl1-mesa-dev libegl1-mesa-dev libgbm-dev libglu1-mesa-dev
 ```
 
+**macOS (Homebrew)**
+
+```bash
+brew install cmake glfw
+```
+
+**macOS OSMesa (Mesa Software Renderer)**
+
+To build OSMesa using Homebrew-provided dependencies:
+
+```bash
+brew install llvm meson ninja pkgconf bison
+python3 -m pip install mako pyyaml packaging
+./tools/build-osmesa.sh
+```
+
+Then configure `offscreen` with:
+
+```bash
+cmake -B build -DCMAKE_PREFIX_PATH="$(pwd)/dependencies/mesa_install"
+cmake --build build
+```
+
 ## Examples
 
 ### macOS
@@ -71,18 +93,27 @@ Furthermore, macOS uses weak linking for its OpenGL library, which essentially e
 ./offscreen --width 640 --height 480 --context glfw --invisible --opengl 3.2 --mode modern
 ```
 
-**OpenGL 2**
+**OpenGL 2 (Native)**
 
 ```bash
 ./offscreen --width 640 --height 480 --context cgl --opengl 2 --mode modern -o out.png
 ./offscreen --width 640 --height 480 --context nsopengl --opengl 2 --mode immediate -o out.png
 ```
 
-**OpenGL 3+**
+**OpenGL 3+ (Native)**
 
 ```bash
 ./offscreen --width 640 --height 480 --context cgl --opengl 3.2 --mode modern -o out.png
 ./offscreen --width 640 --height 480 --context nsopengl --opengl 3.2 --mode modern -o out.png
+```
+
+**OSMesa (Mesa LLVMpipe - Headless & CI Friendly)**
+
+```bash
+./offscreen --context osmesa --opengl 2.1 --mode immediate -o out.png
+./offscreen --context osmesa --opengl 3.3 --profile core --mode modern -o out.png
+./offscreen --context osmesa --opengl 3.3 --profile compatibility --mode immediate -o out.png
+./offscreen --context osmesa --opengl 4.5 --profile core --mode modern -o out.png
 ```
 
 ### Linux OpenGL 3 compatibility mode
